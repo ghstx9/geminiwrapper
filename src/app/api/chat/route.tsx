@@ -1,24 +1,20 @@
-// app/api/chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
-// Get the API key from environment variables
 const apiKey = process.env.GEMINI_API_KEY;
 
-// Check if the API key is available
+// if this error is in your server log then make sure your API key is in your .env file (nextjs uses .env.local)
 if (!apiKey) {
   throw new Error("GEMINI_API_KEY is not defined in environment variables.");
 }
 
-// Initialize the Google Generative AI client
 const genAI = new GoogleGenerativeAI(apiKey);
 
-// Configuration for the generation model
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash", // Using a more recent model
+  model: "gemini-1.5-flash", 
 });
 
-// Safety settings to block harmful content
+// safety settings
 const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
   { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -27,40 +23,63 @@ const safetySettings = [
 ];
 
 export async function POST(req: NextRequest) {
+  console.log('POST function started - UPDATED VERSION WITH 429 HANDLING');
+  
   try {
     const body = await req.json();
-    // Destructure message and history from the request body
     const { message, history } = body;
 
-    console.log('API Route Hit. Request Body:', body); // Log incoming request
+    console.log('API ROUTE HIT! REQUEST BODY:', body); 
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // Start a chat session with the provided history
     const chat = model.startChat({
         history: history || [],
         safetySettings,
     });
 
-    // Send the user's message and get the result
+    console.log('About to send message to Gemini...');
     const result = await chat.sendMessage(message);
     const response = result.response;
     const text = response.text();
     
-    console.log('Gemini Response:', text); // Log successful response
+    console.log('Gemini Response:', text); 
 
     return NextResponse.json({ response: text });
 
-  } catch (error) {
-    // Log the full error for better debugging on the server
-    console.error('--- ERROR IN CHAT API ---');
-    console.error(error);
-    console.error('-------------------------');
+  } catch (error: any) {
+    console.log('CATCH BLOCK HIT - ERROR CAUGHT FALLBACK TO CUSTOM ERROR MESSAGE');
     
-    // Provide a more informative error message to the client
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return NextResponse.json({ error: `Internal Server Error: ${errorMessage}` }, { status: 500 });
+    // logs the error
+    console.error('--- ERROR IN CHAT API ---', error);
+    
+    console.log('error.status:', error.status);
+    console.log('error.message includes [429 Too Many Requests]?:', error.message && error.message.includes('[429 Too Many Requests]'));
+    console.log('error.message includes exceeded your current quota?:', error.message && error.message.toLowerCase().includes('exceeded your current quota'));
+
+    // check for 429 rate limit error - based on actual google sdk error structure
+    const is429Error = 
+      error.status === 429 || 
+      (error.message && error.message.includes('[429 Too Many Requests]')) ||
+      (error.message && error.message.toLowerCase().includes('exceeded your current quota'));
+
+    console.log('is429Error result:', is429Error);
+
+    if (is429Error) {
+      console.log('ERROR 429 DETECTED, RETURNING CUSTOM MESSAGE');
+      return NextResponse.json(
+        { response: "[429 TOO MANY REQUESTS] TRY AGAIN LATER https://ai.google.dev/gemini-api/docs/rate-limits" }, 
+        { status: 429 }
+      );
+    }
+
+    // generic message for other errors
+    console.log('❌ Not a 429 error, returning generic error');
+    return NextResponse.json(
+        { response: "UNEXPECTED ERROR DETECTED, CHECK YOUR API KEY" }, 
+        { status: 500 }
+    );
   }
 }

@@ -1,9 +1,8 @@
-// app/page.tsx
 'use client';
 
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Send, User, MoonStar, Plus } from 'lucide-react';
-import ReactMarkdown from 'react-markdown'; 
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   text: string;
@@ -18,12 +17,12 @@ interface HistoryItem {
     parts: HistoryPart[];
 }
 
-
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promptSuggestions, setPromptSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -34,6 +33,31 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const response = await fetch('/api/prompt-suggestions');
+        if (!response.ok) {
+          throw new Error('Failed to fetch suggestions');
+        }
+        const data = await response.json();
+        setPromptSuggestions(data.suggestions);
+      } catch (err) {
+        console.error(err);
+        // fallback suggestions if retarded API fails
+        setPromptSuggestions([
+          "Explain the theory of relativity",
+          "What are some healthy dinner recipes?",
+          "Write a short story about a time traveler"
+        ]);
+      }
+    };
+    fetchSuggestions();
+  }, []);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,13 +84,19 @@ export default function ChatPage() {
         body: JSON.stringify({ message: input, history: history }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `API error: ${response.statusText}`);
+        // special 429 error message, the message is from route.tsx
+        if (response.status === 429 && data.response) {
+          const aiMessage: Message = { text: data.response, isUser: false };
+          setMessages((prev) => [...prev, aiMessage]);
+          return; 
+        }
+        
+        throw new Error(data.error || `API error: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      
       const aiMessage: Message = { text: data.response, isUser: false };
       setMessages((prev) => [...prev, aiMessage]);
 
@@ -106,10 +136,6 @@ export default function ChatPage() {
                     {msg.isUser ? <User className="h-6 w-6" /> : <MoonStar className="h-6 w-6" />}
                 </div>
                 <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 prose prose-invert prose-slate ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
-                  {/*
-                    change is here: Use ReactMarkdown for foreign messages.
-                    user messages are kept as plain text to prevent markdown injection by the user.
-                  */}
                   {msg.isUser ? (
                     <p className="whitespace-pre-wrap">{msg.text}</p>
                   ) : (
@@ -138,6 +164,20 @@ export default function ChatPage() {
 
         <footer className="p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
+            {/* prompt suggestions */}
+            {messages.length === 0 && !isLoading && (
+              <div className="flex justify-center gap-2 mb-4">
+                {promptSuggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="bg-slate-800 border border-slate-700 text-sm text-slate-300 rounded-xl py-2 px-4 hover:bg-slate-700 transition duration-200"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="relative">
               <input
                 type="text"
@@ -157,7 +197,7 @@ export default function ChatPage() {
               </button>
             </form>
             <p className="text-xs text-center text-slate-500 mt-2">
-                
+
             </p>
           </div>
         </footer>
