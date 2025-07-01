@@ -3,7 +3,7 @@
 
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Send, User, MoonStar, Plus } from 'lucide-react';
-import ReactMarkdown from 'react-markdown'; // Import the component
+import ReactMarkdown from 'react-markdown'; 
 
 interface Message {
   text: string;
@@ -81,11 +81,11 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-slate-900 text-white font-sans">
-      {/* Sidebar */}
+      {/* sidebar */}
       <aside className="w-64 bg-slate-800/50 p-4 hidden md:flex flex-col">
         <div className="flex items-center gap-2 mb-8">
             <MoonStar className="h-6 w-6" />
-            <h1 className="text-xl font-bold text-slate-100">AI Assistant</h1>
+            <h1 className="text-xl font-bold text-slate-100">gemini-wrapper</h1>
         </div>
         <button className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
             <Plus className="h-6 w-6" />
@@ -96,7 +96,7 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* Main Chat Area */}
+      {/* main chat area */}
       <div className="flex-1 flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <div className="max-w-4xl mx-auto space-y-8">
@@ -107,8 +107,8 @@ export default function ChatPage() {
                 </div>
                 <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 prose prose-invert prose-slate ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
                   {/*
-                    Change is here: Use ReactMarkdown for AI messages.
-                    User messages are kept as plain text to prevent markdown injection by the user.
+                    change is here: Use ReactMarkdown for foreign messages.
+                    user messages are kept as plain text to prevent markdown injection by the user.
                   */}
                   {msg.isUser ? (
                     <p className="whitespace-pre-wrap">{msg.text}</p>
@@ -143,7 +143,7 @@ export default function ChatPage() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Send a message..."
+                placeholder="Ask Gemini"
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-5 pr-14 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition duration-200"
                 disabled={isLoading}
               />
