@@ -3,6 +3,7 @@
 
 import { useState, FormEvent, useEffect, useRef } from 'react';
 import { Send, User, MoonStar, Plus } from 'lucide-react';
+import ReactMarkdown from 'react-markdown'; // Import the component
 
 interface Message {
   text: string;
@@ -29,8 +30,6 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Removed the useEffect that added the initial AI welcome message.
-
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
@@ -41,12 +40,10 @@ export default function ChatPage() {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = { text: input, isUser: true };
-    // The full history including the new user message is prepared here
     const updatedMessages = [...messages, userMessage];
 
     setMessages(updatedMessages);
 
-    // The history sent to the API is now created from all messages.
     const history: HistoryItem[] = messages.map(msg => ({
             role: msg.isUser ? 'user' : 'model',
             parts: [{ text: msg.text }]
@@ -57,7 +54,6 @@ export default function ChatPage() {
     setInput('');
 
     try {
-      // We send the current input as `message` and the previous messages as `history`
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,7 +73,6 @@ export default function ChatPage() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);
-       // Also display error as a message in the chat
       setMessages((prev) => [...prev, { text: `Error: ${errorMessage}`, isUser: false }]);
     } finally {
       setIsLoading(false);
@@ -97,7 +92,6 @@ export default function ChatPage() {
             New Chat
         </button>
         <div className="flex-1 mt-8 space-y-2">
-            {/* Placeholder for chat history */}
             <div className="text-slate-400 text-sm p-2 rounded-lg hover:bg-slate-700/50 cursor-pointer">Previous conversation...</div>
         </div>
       </aside>
@@ -111,8 +105,16 @@ export default function ChatPage() {
                 <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${msg.isUser ? 'bg-blue-500' : 'bg-slate-700'}`}>
                     {msg.isUser ? <User className="h-6 w-6" /> : <MoonStar className="h-6 w-6" />}
                 </div>
-                <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
-                  <p className="whitespace-pre-wrap">{msg.text}</p>
+                <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 prose prose-invert prose-slate ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
+                  {/*
+                    Change is here: Use ReactMarkdown for AI messages.
+                    User messages are kept as plain text to prevent markdown injection by the user.
+                  */}
+                  {msg.isUser ? (
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                  ) : (
+                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  )}
                 </div>
               </div>
             ))}
@@ -155,7 +157,7 @@ export default function ChatPage() {
               </button>
             </form>
             <p className="text-xs text-center text-slate-500 mt-2">
-                AI can make mistakes. Consider checking important information.
+                
             </p>
           </div>
         </footer>
