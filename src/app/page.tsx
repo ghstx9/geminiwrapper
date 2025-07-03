@@ -33,31 +33,31 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  // effect to fetch prompt suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
-      setIsLoading(true); 
       try {
         const response = await fetch('/api/chat');
+        
         if (!response.ok) {
-          throw new Error(`Failed to fetch suggestions, status: ${response.status}`);
+          throw new Error(`Failed to fetch suggestions. Status: ${response.status}`);
         }
-        const data = await response.json();
 
+        const data = await response.json();
         setPromptSuggestions(data.suggestions);
+
       } catch (err) {
         console.error(err);
-
+        // the fallback logic is still essential for when the API call fails
         setPromptSuggestions([
           "Explain the theory of relativity",
           "What are some healthy dinner recipes?",
           "Write a short story about a time traveler"
         ]);
-      } finally {
-        setIsLoading(false); 
       }
     };
     
-    // only fetch suggestions if there are no messages in the chat
+    // only fetch suggestions if the chat is empty
     if (messages.length === 0) {
         fetchSuggestions();
     }
@@ -72,7 +72,9 @@ export default function ChatPage() {
     if (!input.trim() || isLoading) return;
 
     // hide suggestions once the first message is sent
-    setPromptSuggestions([]); 
+    if (promptSuggestions.length > 0) {
+        setPromptSuggestions([]);
+    }
     
     const userMessage: Message = { text: input, isUser: true };
     const updatedMessages = [...messages, userMessage];
@@ -98,14 +100,13 @@ export default function ChatPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        // special 429 error message, the message is from route.tsx
         if (response.status === 429 && data.response) {
           const aiMessage: Message = { text: data.response, isUser: false };
           setMessages((prev) => [...prev, aiMessage]);
           return; 
         }
         
-        throw new Error(data.error || `API error: ${response.statusText}`);
+        throw new Error(data.error || data.response || `API error: ${response.statusText}`);
       }
 
       const aiMessage: Message = { text: data.response, isUser: false };
@@ -155,7 +156,7 @@ export default function ChatPage() {
                 </div>
               </div>
             ))}
-            {isLoading && messages.length > 0 && (
+            {isLoading && (
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center">
                     <MoonStar className="h-6 w-6" />
