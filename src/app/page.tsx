@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
-import { Send, User, MoonStar, Plus } from 'lucide-react';
+import { Send, User, MoonStar, Plus, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -140,6 +140,62 @@ export default function ChatPage() {
     }
   };
 
+  const convertUrlsToLinks = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, '[$1]($1)');
+  };
+
+  // custom components for reactmarkdown to handle links
+  const markdownComponents = {
+    a: ({ href, children, ...props }: any) => (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-400 hover:text-blue-300 underline underline-offset-2 decoration-blue-400/50 hover:decoration-blue-300/70 transition-colors duration-200 inline-flex items-center gap-1"
+        {...props}
+      >
+        {children}
+        <ExternalLink className="h-3 w-3 opacity-70" />
+      </a>
+    ),
+    p: ({ children, ...props }: any) => (
+      <p className="mb-2 last:mb-0" {...props}>
+        {children}
+      </p>
+    ),
+    ul: ({ children, ...props }: any) => (
+      <ul className="list-disc list-inside mb-2 space-y-1" {...props}>
+        {children}
+      </ul>
+    ),
+    ol: ({ children, ...props }: any) => (
+      <ol className="list-decimal list-inside mb-2 space-y-1" {...props}>
+        {children}
+      </ol>
+    ),
+    li: ({ children, ...props }: any) => (
+      <li className="text-slate-200" {...props}>
+        {children}
+      </li>
+    ),
+    code: ({ inline, children, ...props }: any) =>
+      inline ? (
+        <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded text-sm" {...props}>
+          {children}
+        </code>
+      ) : (
+        <pre className="bg-slate-800 text-slate-200 p-3 rounded-lg overflow-x-auto my-2">
+          <code {...props}>{children}</code>
+        </pre>
+      ),
+    blockquote: ({ children, ...props }: any) => (
+      <blockquote className="border-l-4 border-slate-500 pl-4 italic text-slate-300 my-2" {...props}>
+        {children}
+      </blockquote>
+    ),
+  };
+
   return (
     <div className="flex h-screen bg-slate-900 text-white font-sans">
       {/* desktop sidebar */}
@@ -187,11 +243,15 @@ export default function ChatPage() {
                     <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${msg.isUser ? 'bg-blue-500' : 'bg-slate-700'}`}>
                         {msg.isUser ? <User className="h-6 w-6" /> : <MoonStar className="h-6 w-6" />}
                     </div>
-                    <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 prose prose-invert prose-slate ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
+                    <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
                       {msg.isUser ? (
                         <p className="whitespace-pre-wrap">{msg.text}</p>
                       ) : (
-                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                        <div className="prose prose-invert prose-slate max-w-none">
+                          <ReactMarkdown components={markdownComponents}>
+                            {convertUrlsToLinks(msg.text)}
+                          </ReactMarkdown>
+                        </div>
                       )}
                     </div>
                   </div>
