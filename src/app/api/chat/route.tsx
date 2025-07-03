@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { message, history } = body;
 
-    console.log(' 👀 API ROUTE HIT! REQUEST BODY:', body); 
+    console.log('👀 API ROUTE HIT! REQUEST BODY:', body); 
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ response: text });
 
   } catch (error: any) {
-    console.log(' 🔥 CATCH BLOCK HIT - ERROR CAUGHT FALLBACK');
+    console.log('🔥 CATCH BLOCK HIT - ERROR CAUGHT FALLBACK');
     
     // logs the error
     console.error('--- ERROR IN CHAT API (POST) ---', error);
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     console.log('is429Error result:', is429Error);
 
     if (is429Error) {
-      console.log(' ⚠️ ERROR 429 DETECTED, RETURNING CUSTOM MESSAGE');
+      console.log('⚠️ ERROR 429 DETECTED, RETURNING CUSTOM MESSAGE');
       return NextResponse.json(
         { response: " ⚠️ [ERROR 429 TOO MANY REQUESTS] TRY AGAIN LATER https://aistudio.google.com/status" }, 
         { status: 429 }
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     }
 
     // generic message for other errors
-    console.log(' ❌ not a 429 error, returning generic error');
+    console.log('❌ not a 429 error, returning generic error');
     return NextResponse.json(
         { response: "UNEXPECTED ERROR DETECTED, CHECK YOUR API KEY" }, 
         { status: 500 }

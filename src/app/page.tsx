@@ -72,6 +72,13 @@ export default function ChatPage() {
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
   };
+  
+  const handleNewChat = () => {
+    setMessages([]);
+    setInput('');
+    setIsLoading(false);
+    setError(null);
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -140,13 +147,12 @@ export default function ChatPage() {
             <MoonStar className="h-6 w-6" />
             <h1 className="text-xl font-bold text-slate-100">gemini-wrapper</h1>
         </div>
-        <button className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+        <button
+            onClick={handleNewChat}
+            className="flex items-center justify-center gap-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
             <Plus className="h-6 w-6" />
             New Chat
         </button>
-        <div className="flex-1 mt-8 space-y-2">
-            <div className="text-slate-400 text-sm p-2 rounded-lg hover:bg-slate-700/50 cursor-pointer">Previous conversation...</div>
-        </div>
       </aside>
 
       <div className="flex-1 flex flex-col">
