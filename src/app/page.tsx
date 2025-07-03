@@ -151,37 +151,45 @@ export default function ChatPage() {
 
       <div className="flex-1 flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="max-w-4xl mx-auto space-y-8">
-            {messages.map((msg, index) => (
-              <div key={index} className={`flex items-start gap-4`}>
-                <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${msg.isUser ? 'bg-blue-500' : 'bg-slate-700'}`}>
-                    {msg.isUser ? <User className="h-6 w-6" /> : <MoonStar className="h-6 w-6" />}
-                </div>
-                <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 prose prose-invert prose-slate ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
-                  {msg.isUser ? (
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                  ) : (
-                    <ReactMarkdown>{msg.text}</ReactMarkdown>
-                  )}
-                </div>
+            {messages.length === 0 && !isLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <h1 className="text-4xl font-medium bg-gradient-to-r from-indigo-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+                  Hello, user.
+                </h1>
               </div>
-            ))}
-            {isLoading && (
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center">
-                    <MoonStar className="h-6 w-6" />
-                </div>
-                <div className="rounded-2xl p-4 max-w-lg bg-slate-700/80">
-                  <div className="flex items-center justify-center space-x-1">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:0.2s]"></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:0.4s]"></div>
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-8">
+                {messages.map((msg, index) => (
+                  <div key={index} className={`flex items-start gap-4`}>
+                    <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${msg.isUser ? 'bg-blue-500' : 'bg-slate-700'}`}>
+                        {msg.isUser ? <User className="h-6 w-6" /> : <MoonStar className="h-6 w-6" />}
+                    </div>
+                    <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 prose prose-invert prose-slate ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
+                      {msg.isUser ? (
+                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                      ) : (
+                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ))}
+                {isLoading && (
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center">
+                        <MoonStar className="h-6 w-6" />
+                    </div>
+                    <div className="rounded-2xl p-4 max-w-lg bg-slate-700/80">
+                      <div className="flex items-center justify-center space-x-1">
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:0.2s]"></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse [animation-delay:0.4s]"></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
               </div>
             )}
-            <div ref={messagesEndRef} />
-          </div>
         </main>
 
         <footer className="p-4 md:p-6">
