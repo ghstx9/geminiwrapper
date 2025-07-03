@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, useEffect, useRef } from 'react';
+import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
 import { Send, User, MoonStar, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -24,6 +24,8 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [promptSuggestions, setPromptSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,7 +35,6 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  // effect to fetch prompt suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
       try {
@@ -48,7 +49,6 @@ export default function ChatPage() {
 
       } catch (err) {
         console.error(err);
-        // the fallback logic is still essential for when the API call fails
         setPromptSuggestions([
           "Explain the theory of relativity",
           "What are some healthy dinner recipes?",
@@ -57,11 +57,17 @@ export default function ChatPage() {
       }
     };
     
-    // only fetch suggestions if the chat is empty
     if (messages.length === 0) {
         fetchSuggestions();
     }
   }, [messages.length]);
+  
+  useEffect(() => {
+    if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [input]);
 
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
@@ -71,7 +77,6 @@ export default function ChatPage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    // hide suggestions once the first message is sent
     if (promptSuggestions.length > 0) {
         setPromptSuggestions([]);
     }
@@ -121,9 +126,15 @@ export default function ChatPage() {
     }
   };
 
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        formRef.current?.requestSubmit();
+    }
+  };
+
   return (
     <div className="flex h-screen bg-slate-900 text-white font-sans">
-      {/* sidebar */}
       <aside className="w-64 bg-slate-800/50 p-4 hidden md:flex flex-col">
         <div className="flex items-center gap-2 mb-8">
             <MoonStar className="h-6 w-6" />
@@ -138,7 +149,6 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* main chat area */}
       <div className="flex-1 flex flex-col">
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
           <div className="max-w-4xl mx-auto space-y-8">
@@ -176,7 +186,6 @@ export default function ChatPage() {
 
         <footer className="p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
-            {/* prompt suggestions */}
             {messages.length === 0 && !isLoading && promptSuggestions.length > 0 && (
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {promptSuggestions.map((suggestion, index) => (
@@ -190,22 +199,24 @@ export default function ChatPage() {
                 ))}
               </div>
             )}
-            <form onSubmit={handleSubmit} className="relative">
-              <input
-                type="text"
+            <form ref={formRef} onSubmit={handleSubmit} className="relative">
+              <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask Gemini"
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-4 pl-5 pr-14 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition duration-200"
+                rows={1}
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-5 pr-14 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition duration-200 resize-none overflow-y-hidden"
                 disabled={isLoading}
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold p-2.5 rounded-lg transition duration-200 flex items-center justify-center"
+                className="absolute right-3 bottom-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-bold p-2.5 rounded-lg transition duration-200 flex items-center justify-center"
                 disabled={isLoading || !input.trim()}
                 aria-label="Send message"
               >
-                <Send className="h-6 w-6" />
+                <Send className="h-5 w-5" />
               </button>
             </form>
             <p className="text-xs text-center text-slate-500 mt-2">
