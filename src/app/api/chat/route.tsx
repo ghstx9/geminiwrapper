@@ -22,6 +22,46 @@ const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
 ];
 
+export async function GET(req: NextRequest) {
+  console.log('GET function for suggestions started');
+  try {
+    const prompt = `
+      Generate 3 brief, interesting but very short suggestions for a generic AI chatbot.
+      The suggestions should be suitable for a general audience.
+      Return them as a valid JSON array of strings.
+      For example:
+      ["Explain quantum computing in simple terms", "What are some creative gift ideas for a friend who loves hiking?", "Write a short poem about the city at night"]
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    console.log('Gemini suggestion response:', text);
+
+    const jsonString = text.replace(/```json|```/g, '').trim();
+
+    const suggestions = JSON.parse(jsonString);
+
+    if (!Array.isArray(suggestions)) {
+        throw new Error("Response from AI was not a valid array.");
+    }
+
+    return NextResponse.json({ suggestions });
+
+  } catch (error) {
+    console.error('--- ERROR IN SUGGESTION API (GET) ---', error);
+    // in case of an error, return a fallback set of suggestions to ensure the user interface doesn't break.
+    const fallbackSuggestions = [
+        "Explain the theory of relativity",
+        "What are some healthy dinner recipes?",
+        "Write a short story about a time traveler"
+    ];
+    return NextResponse.json({ suggestions: fallbackSuggestions }, { status: 500 });
+  }
+}
+
+
 export async function POST(req: NextRequest) {
   console.log('POST function started - UPDATED VERSION WITH 429 HANDLING');
   
@@ -53,7 +93,7 @@ export async function POST(req: NextRequest) {
     console.log('CATCH BLOCK HIT - ERROR CAUGHT FALLBACK TO CUSTOM ERROR MESSAGE');
     
     // logs the error
-    console.error('--- ERROR IN CHAT API ---', error);
+    console.error('--- ERROR IN CHAT API (POST) ---', error);
     
     console.log('error.status:', error.status);
     console.log('error.message includes [429 Too Many Requests]?:', error.message && error.message.includes('[429 Too Many Requests]'));
@@ -76,7 +116,7 @@ export async function POST(req: NextRequest) {
     }
 
     // generic message for other errors
-    console.log('❌ Not a 429 error, returning generic error');
+    console.log('X not a 429 error, returning generic error');
     return NextResponse.json(
         { response: "UNEXPECTED ERROR DETECTED, CHECK YOUR API KEY" }, 
         { status: 500 }

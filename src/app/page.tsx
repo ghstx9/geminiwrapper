@@ -35,25 +35,33 @@ export default function ChatPage() {
 
   useEffect(() => {
     const fetchSuggestions = async () => {
+      setIsLoading(true); 
       try {
-        const response = await fetch('/api/prompt-suggestions');
+        const response = await fetch('/api/chat');
         if (!response.ok) {
-          throw new Error('Failed to fetch suggestions');
+          throw new Error(`Failed to fetch suggestions, status: ${response.status}`);
         }
         const data = await response.json();
+
         setPromptSuggestions(data.suggestions);
       } catch (err) {
         console.error(err);
-        // fallback suggestions if retarded API fails
+
         setPromptSuggestions([
           "Explain the theory of relativity",
           "What are some healthy dinner recipes?",
           "Write a short story about a time traveler"
         ]);
+      } finally {
+        setIsLoading(false); 
       }
     };
-    fetchSuggestions();
-  }, []);
+    
+    // only fetch suggestions if there are no messages in the chat
+    if (messages.length === 0) {
+        fetchSuggestions();
+    }
+  }, [messages.length]);
 
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
@@ -63,6 +71,9 @@ export default function ChatPage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
+    // hide suggestions once the first message is sent
+    setPromptSuggestions([]); 
+    
     const userMessage: Message = { text: input, isUser: true };
     const updatedMessages = [...messages, userMessage];
 
@@ -144,7 +155,7 @@ export default function ChatPage() {
                 </div>
               </div>
             ))}
-            {isLoading && (
+            {isLoading && messages.length > 0 && (
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center">
                     <MoonStar className="h-6 w-6" />
@@ -165,8 +176,8 @@ export default function ChatPage() {
         <footer className="p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
             {/* prompt suggestions */}
-            {messages.length === 0 && !isLoading && (
-              <div className="flex justify-center gap-2 mb-4">
+            {messages.length === 0 && !isLoading && promptSuggestions.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {promptSuggestions.map((suggestion, index) => (
                   <button
                     key={index}
@@ -197,7 +208,7 @@ export default function ChatPage() {
               </button>
             </form>
             <p className="text-xs text-center text-slate-500 mt-2">
-
+              {/* footer text can go here */}
             </p>
           </div>
         </footer>
