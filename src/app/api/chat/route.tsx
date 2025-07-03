@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
 
 export async function POST(req: NextRequest) {
-  console.log('POST function started - UPDATED VERSION WITH 429 HANDLING');
+  console.log('POST function started - Bard-Gemini WRAPPER 1.0');
   
   try {
     const body = await req.json();

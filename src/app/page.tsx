@@ -142,6 +142,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-slate-900 text-white font-sans">
+      {/* desktop sidebar */}
       <aside className="w-64 bg-slate-800/50 p-4 hidden md:flex flex-col">
         <div className="flex items-center gap-2 mb-8">
             <MoonStar className="h-6 w-6" />
@@ -156,6 +157,22 @@ export default function ChatPage() {
       </aside>
 
       <div className="flex-1 flex flex-col">
+        {/* mobile header with new chat btn */}
+        <header className="md:hidden bg-slate-800/50 p-4 border-b border-slate-700/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MoonStar className="h-6 w-6" />
+              <h1 className="text-lg font-bold text-slate-100">gemini-wrapper</h1>
+            </div>
+            <button
+              onClick={handleNewChat}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-lg transition-colors duration-200">
+              <Plus className="h-5 w-5" />
+              <span className="text-sm">New Chat</span>
+            </button>
+          </div>
+        </header>
+
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
             {messages.length === 0 && !isLoading ? (
               <div className="flex h-full items-center justify-center">
