@@ -19,6 +19,73 @@ interface HistoryItem {
     parts: HistoryPart[];
 }
 
+// custom component for rendering code blocks with a copy button
+const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyCode = () => {
+        const codeString = node?.children[0]?.type === 'text' ? node.children[0].value : '';
+        if (!codeString) return;
+
+        const textArea = document.createElement('textarea');
+        textArea.value = codeString;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            setCopied(true);
+            setTimeout(() => {
+                setCopied(false);
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy code: ', err);
+        }
+        document.body.removeChild(textArea);
+    };
+
+    const match = /language-(\w+)/.exec(className || '');
+
+    if (inline) {
+        return (
+            <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded text-sm" {...props}>
+                {children}
+            </code>
+        );
+    }
+
+    return (
+        <div className="relative group/code-block my-2">
+            <div className="flex items-center justify-between bg-slate-900/80 px-4 py-2 rounded-t-lg border-b border-slate-700">
+                <span className="text-xs font-sans text-slate-400">{match ? match[1] : 'code'}</span>
+                <button
+                    onClick={handleCopyCode}
+                    className="flex items-center gap-1.5 p-1.5 rounded-lg bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all duration-200"
+                    aria-label="Copy code"
+                >
+                    {copied ? (
+                        <>
+                            <Check className="h-4 w-4 text-green-400" />
+                            <span className="text-xs">Copied!</span>
+                        </>
+                    ) : (
+                        <>
+                            <Copy className="h-4 w-4" />
+                            <span className="text-xs">Copy</span>
+                        </>
+                    )}
+                </button>
+            </div>
+            <pre className="bg-slate-800 text-slate-200 p-4 rounded-b-lg overflow-x-auto">
+                <code className={className} {...props}>
+                    {children}
+                </code>
+            </pre>
+        </div>
+    );
+};
+
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -82,7 +149,6 @@ export default function ChatPage() {
   };
 
   const handleCopy = (text: string, index: number) => {
-
     const textArea = document.createElement('textarea');
     textArea.value = text;
     document.body.appendChild(textArea);
@@ -162,7 +228,6 @@ export default function ChatPage() {
     return text.replace(urlRegex, '[$1]($1)');
   };
 
-  // custom components for reactmarkdown to handle links
   const markdownComponents: Components = {
     a: ({ href, children, ...props }) => (
       <a
@@ -196,19 +261,7 @@ export default function ChatPage() {
         {children}
       </li>
     ),
-    code: ({ children, ...props }) => {
-      const isInline = !props.className || !props.className.includes('language-');
-      
-      return isInline ? (
-        <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded text-sm" {...props}>
-          {children}
-        </code>
-      ) : (
-        <pre className="bg-slate-800 text-slate-200 p-3 rounded-lg overflow-x-auto my-2">
-          <code {...props}>{children}</code>
-        </pre>
-      );
-    },
+    code: CodeBlock, // custom codeblock component
     blockquote: ({ children, ...props }) => (
       <blockquote className="border-l-4 border-slate-500 pl-4 italic text-slate-300 my-2" {...props}>
         {children}
