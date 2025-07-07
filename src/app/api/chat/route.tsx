@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
+export const runtime = 'edge';
+
 const apiKey = process.env.GEMINI_API_KEY;
 
 // if this error is in your server log then make sure your API key is in your .env file (nextjs uses .env.local)
