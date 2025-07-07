@@ -22,7 +22,7 @@ const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
 ];
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   console.log('GET function for suggestions started');
   try {
     const prompt = `
@@ -89,21 +89,30 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ response: text });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.log('🔥 CATCH BLOCK HIT - ERROR CAUGHT FALLBACK');
     
     // logs the error
     console.error('--- ERROR IN CHAT API (POST) ---', error);
     
-    console.log('error.status:', error.status);
-    console.log('error.message includes [429 Too Many Requests]?:', error.message && error.message.includes('[429 Too Many Requests]'));
-    console.log('error.message includes exceeded your current quota?:', error.message && error.message.toLowerCase().includes('exceeded your current quota'));
+    // type guard to check if error has expected properties
+    const hasStatusAndMessage = (err: unknown): err is { status?: number; message?: string } => {
+      return typeof err === 'object' && err !== null;
+    };
 
-    // check for 429 rate limit error - based on actual google sdk error structure
-    const is429Error = 
-      error.status === 429 || 
-      (error.message && error.message.includes('[429 Too Many Requests]')) ||
-      (error.message && error.message.toLowerCase().includes('exceeded your current quota'));
+    let is429Error = false;
+    
+    if (hasStatusAndMessage(error)) {
+      console.log('error.status:', error.status);
+      console.log('error.message includes [429 Too Many Requests]?:', error.message ? error.message.includes('[429 Too Many Requests]') : false);
+      console.log('error.message includes exceeded your current quota?:', error.message ? error.message.toLowerCase().includes('exceeded your current quota') : false);
+
+      // check for 429 rate limit error - based on actual google sdk error structure
+      is429Error = 
+        error.status === 429 || 
+        (error.message ? error.message.includes('[429 Too Many Requests]') : false) ||
+        (error.message ? error.message.toLowerCase().includes('exceeded your current quota') : false);
+    }
 
     console.log('is429Error result:', is429Error);
 
