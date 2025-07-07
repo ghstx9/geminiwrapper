@@ -23,7 +23,7 @@
     inline?: boolean;
     className?: string;
     children?: React.ReactNode;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
   // custom component for rendering code blocks with a copy button
