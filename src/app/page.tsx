@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
-import { Send, User, MoonStar, Plus, ExternalLink } from 'lucide-react';
+import { Send, User, MoonStar, Plus, ExternalLink, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 
@@ -24,6 +24,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [promptSuggestions, setPromptSuggestions] = useState<string[]>([]);
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -80,6 +81,26 @@ export default function ChatPage() {
     setIsLoading(false);
   };
 
+  const handleCopy = (text: string, index: number) => {
+
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      setCopiedMessageIndex(index);
+
+      setTimeout(() => {
+        setCopiedMessageIndex(null);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+    document.body.removeChild(textArea);
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -89,9 +110,7 @@ export default function ChatPage() {
     }
     
     const userMessage: Message = { text: input, isUser: true };
-    const updatedMessages = [...messages, userMessage];
-
-    setMessages(updatedMessages);
+    setMessages((prev) => [...prev, userMessage]);
 
     const history: HistoryItem[] = messages.map(msg => ({
             role: msg.isUser ? 'user' : 'model',
@@ -244,15 +263,28 @@ export default function ChatPage() {
                     <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${msg.isUser ? 'bg-blue-500' : 'bg-slate-700'}`}>
                         {msg.isUser ? <User className="h-6 w-6" /> : <MoonStar className="h-6 w-6" />}
                     </div>
-                    <div className={`rounded-2xl p-4 max-w-2xl text-slate-100 ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
+                    <div className={`group relative rounded-2xl p-4 max-w-2xl text-slate-100 ${msg.isUser ? 'bg-slate-800' : 'bg-slate-700/80'}`}>
                       {msg.isUser ? (
                         <p className="whitespace-pre-wrap">{msg.text}</p>
                       ) : (
-                        <div className="prose prose-invert prose-slate max-w-none">
-                          <ReactMarkdown components={markdownComponents}>
-                            {convertUrlsToLinks(msg.text)}
-                          </ReactMarkdown>
-                        </div>
+                        <>
+                          <div className="prose prose-invert prose-slate max-w-none">
+                            <ReactMarkdown components={markdownComponents}>
+                              {convertUrlsToLinks(msg.text)}
+                            </ReactMarkdown>
+                          </div>
+                          <button
+                            onClick={() => handleCopy(msg.text, index)}
+                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-slate-200 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                            aria-label="Copy message"
+                          >
+                            {copiedMessageIndex === index ? (
+                                <Check className="h-4 w-4 text-green-400" />
+                            ) : (
+                                <Copy className="h-4 w-4" />
+                            )}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
