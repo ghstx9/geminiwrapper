@@ -1,4 +1,4 @@
-  'use client';
+'use client';
 
   import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
   import { Send, User, MoonStar, Plus, ExternalLink, Copy, Check } from 'lucide-react';
@@ -19,28 +19,24 @@
       parts: HistoryPart[];
   }
 
-  interface CodeNode {
-    children?: Array<{
-    type: string;
-    value: string;
-  }>;
-}
-
   interface CodeBlockProps {
-    node?: CodeNode;
     inline?: boolean;
     className?: string;
     children?: React.ReactNode;
-    [key: string]: unknown;
-}
+    [key: string]: any;
+  }
 
   // custom component for rendering code blocks with a copy button
-  const CodeBlock = ({ node, inline, className, children, ...props }: CodeBlockProps) => {
+  const CodeBlock = ({ inline, className, children, ...props }: CodeBlockProps) => {
       const [copied, setCopied] = useState(false);
 
       const handleCopyCode = () => {
-          const firstChild = node?.children?.[0];
-          const codeString = firstChild?.type === 'text' ? firstChild.value : '';
+          const codeString = Array.isArray(children) 
+              ? children.join('') 
+              : typeof children === 'string' 
+                  ? children 
+                  : String(children || '');
+          
           if (!codeString) return;
 
           const textArea = document.createElement('textarea');
