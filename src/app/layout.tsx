@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Ricky's Gemini",
-  description: "Powered by Gemini 1.5 Flash",
+  description: "incoming.",
 };
 
 export default function RootLayout({
