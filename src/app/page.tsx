@@ -19,12 +19,19 @@
       parts: HistoryPart[];
   }
 
+  interface CodeNode {
+    children?: Array<{
+    type: string;
+    value: string;
+  }>;
+}
+
   interface CodeBlockProps {
-    node?: any;
+    node?: CodeNode;
     inline?: boolean;
     className?: string;
     children?: React.ReactNode;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
   // custom component for rendering code blocks with a copy button
