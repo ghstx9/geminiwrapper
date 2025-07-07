@@ -19,15 +19,9 @@
       parts: HistoryPart[];
   }
 
-  interface CodeBlockProps {
-    inline?: boolean;
-    className?: string;
-    children?: React.ReactNode;
-    [key: string]: unknown;
-  }
-
   // custom component for rendering code blocks with a copy button
-  const CodeBlock = ({ inline, className, children, ...props }: CodeBlockProps) => {
+  const CodeBlock = (props: React.ComponentProps<'code'> & { inline?: boolean }) => {
+      const { inline, className, children, ...restProps } = props;
       const [copied, setCopied] = useState(false);
 
       const handleCopyCode = () => {
@@ -60,7 +54,7 @@
 
       if (inline) {
           return (
-              <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded text-sm" {...props}>
+              <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded text-sm" {...restProps}>
                   {children}
               </code>
           );
@@ -89,7 +83,7 @@
                   </button>
               </div>
               <pre className="bg-slate-800 text-slate-200 p-4 rounded-b-lg overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
-                  <code className={className} {...props}>
+                  <code className={className} {...restProps}>
                       {children}
                   </code>
               </pre>
@@ -273,7 +267,7 @@
           {children}
         </li>
       ),
-      code: CodeBlock, // custom codeblock component
+      code: CodeBlock as Components['code'], // custom codeblock component
       blockquote: ({ children, ...props }) => (
         <blockquote className="border-l-4 border-slate-500 pl-4 italic text-slate-300 my-2" {...props}>
           {children}
