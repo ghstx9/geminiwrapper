@@ -19,8 +19,16 @@
       parts: HistoryPart[];
   }
 
+  interface CodeBlockProps {
+    node?: any;
+    inline?: boolean;
+    className?: string;
+    children?: React.ReactNode;
+    [key: string]: any;
+}
+
   // custom component for rendering code blocks with a copy button
-  const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
+  const CodeBlock = ({ node, inline, className, children, ...props }: CodeBlockProps) => {
       const [copied, setCopied] = useState(false);
 
       const handleCopyCode = () => {
