@@ -233,7 +233,7 @@ export default function ChatPage() {
             {messages.length === 0 && !isLoading ? (
               <div className="flex h-full items-center justify-center">
                 <h1 className="text-4xl font-medium bg-gradient-to-r from-indigo-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-                  Hello, &#123;whateverurnameis&#125;.
+                  Hey there, ember.
                 </h1>
               </div>
             ) : (
