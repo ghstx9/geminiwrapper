@@ -39,7 +39,8 @@
       const [copied, setCopied] = useState(false);
 
       const handleCopyCode = () => {
-          const codeString = node?.children[0]?.type === 'text' ? node.children[0].value : '';
+          const firstChild = node?.children?.[0];
+          const codeString = firstChild?.type === 'text' ? firstChild.value : '';
           if (!codeString) return;
 
           const textArea = document.createElement('textarea');
