@@ -58,7 +58,7 @@ const model = genAI.getGenerativeModel({
 });
 ```
 
-Refer to the [Google Generative AI documentation](https://ai.google.dev/docs/models/gemini) for available model names.
+Refer to the [Google Generative AI documentation](https://ai.google.dev/gemini-api/docs) for available model names.
 
 ---
 
