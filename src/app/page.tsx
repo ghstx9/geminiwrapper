@@ -3,6 +3,7 @@
 import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
 import { Send, User, MoonStar, Plus, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
 
 interface Message {
   text: string;
@@ -12,6 +13,7 @@ interface Message {
 interface HistoryPart {
     text: string;
 }
+
 interface HistoryItem {
     role: 'user' | 'model';
     parts: HistoryPart[];
@@ -21,7 +23,6 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [promptSuggestions, setPromptSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -77,7 +78,6 @@ export default function ChatPage() {
     setMessages([]);
     setInput('');
     setIsLoading(false);
-    setError(null);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -99,7 +99,6 @@ export default function ChatPage() {
         }));
 
     setIsLoading(true);
-    setError(null);
     setInput('');
 
     try {
@@ -126,7 +125,6 @@ export default function ChatPage() {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setError(errorMessage);
       setMessages((prev) => [...prev, { text: `Error: ${errorMessage}`, isUser: false }]);
     } finally {
       setIsLoading(false);
@@ -146,8 +144,8 @@ export default function ChatPage() {
   };
 
   // custom components for reactmarkdown to handle links
-  const markdownComponents = {
-    a: ({ href, children, ...props }: any) => (
+  const markdownComponents: Components = {
+    a: ({ href, children, ...props }) => (
       <a
         href={href}
         target="_blank"
@@ -159,28 +157,30 @@ export default function ChatPage() {
         <ExternalLink className="h-3 w-3 opacity-70" />
       </a>
     ),
-    p: ({ children, ...props }: any) => (
+    p: ({ children, ...props }) => (
       <p className="mb-2 last:mb-0" {...props}>
         {children}
       </p>
     ),
-    ul: ({ children, ...props }: any) => (
+    ul: ({ children, ...props }) => (
       <ul className="list-disc list-inside mb-2 space-y-1" {...props}>
         {children}
       </ul>
     ),
-    ol: ({ children, ...props }: any) => (
+    ol: ({ children, ...props }) => (
       <ol className="list-decimal list-inside mb-2 space-y-1" {...props}>
         {children}
       </ol>
     ),
-    li: ({ children, ...props }: any) => (
+    li: ({ children, ...props }) => (
       <li className="text-slate-200" {...props}>
         {children}
       </li>
     ),
-    code: ({ inline, children, ...props }: any) =>
-      inline ? (
+    code: ({ children, ...props }) => {
+      const isInline = !props.className || !props.className.includes('language-');
+      
+      return isInline ? (
         <code className="bg-slate-800 text-blue-300 px-1 py-0.5 rounded text-sm" {...props}>
           {children}
         </code>
@@ -188,8 +188,9 @@ export default function ChatPage() {
         <pre className="bg-slate-800 text-slate-200 p-3 rounded-lg overflow-x-auto my-2">
           <code {...props}>{children}</code>
         </pre>
-      ),
-    blockquote: ({ children, ...props }: any) => (
+      );
+    },
+    blockquote: ({ children, ...props }) => (
       <blockquote className="border-l-4 border-slate-500 pl-4 italic text-slate-300 my-2" {...props}>
         {children}
       </blockquote>
