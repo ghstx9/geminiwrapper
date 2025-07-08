@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
-import { Send, User, MoonStar, Plus, ExternalLink, Copy, Check, Sparkles } from 'lucide-react';
+import { Send, User, MoonStar, Plus, ExternalLink, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 
