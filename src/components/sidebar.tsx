@@ -1,17 +1,24 @@
 import { MoonStar, Plus, X } from 'lucide-react';
+import  ModelSelector from '../components/modelselector'; 
 
 interface SidebarProps {
   onNewChat: () => void;
   isMobile?: boolean;
   isOpen?: boolean;
   onClose?: () => void;
+  selectedModel?: string;
+  onModelChange?: (modelId: string) => void;
+  disabled?: boolean;
 }
 
 export default function Sidebar({ 
   onNewChat, 
   isMobile = false, 
   isOpen = false, 
-  onClose 
+  onClose,
+  selectedModel = 'gpt-3.5-turbo',
+  onModelChange = () => {},
+  disabled = false
 }: SidebarProps) {
   const handleNewChat = () => {
     onNewChat();
@@ -33,6 +40,19 @@ export default function Sidebar({
               <h1 className="text-xl font-bold text-white">Ricky&#39;s LM Demo</h1>
             </div>
           </div>
+          
+          {/* model selector */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              AI Model
+            </label>
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={onModelChange}
+              disabled={disabled}
+            />
+          </div>
+
           <button
             onClick={handleNewChat}
             className="flex items-center justify-center gap-3 w-full bg-[#0b36d23f] text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
@@ -72,6 +92,19 @@ export default function Sidebar({
               <X className="h-5 w-5" />
             </button>
           </div>
+          
+          {/* model selector */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              AI Model
+            </label>
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={onModelChange}
+              disabled={disabled}
+            />
+          </div>
+
           <button
             onClick={handleNewChat}
             className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"

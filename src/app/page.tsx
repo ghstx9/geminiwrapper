@@ -114,6 +114,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('gemma-3-27b-it'); 
+  const [showAlert, setShowAlert] = useState(false); // New state for alert visibility
 
   const [promptSuggestions, setPromptSuggestions] = useState<string[]>(allSuggestions.slice(0, 3));
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
@@ -139,6 +141,39 @@ export default function ChatPage() {
     setMessages([]);
     setIsLoading(false);
     setPromptSuggestions(getRandomSuggestions());
+    setShowAlert(false); 
+  };
+
+  const handleModelChange = (modelId: string) => {
+    setSelectedModel(modelId);
+    
+    const supportedIndonesianModels = ['gemma-3-27b-it', 'gemini-2.5-flash', 'deepseek/deepseek-r1-0528:free'];
+
+    const hideAlert = localStorage.getItem('hideIndonesianAlert') === 'true';
+
+    // show alert if the selected model is NOT in the supported list AND user hasn't chosen to hide it
+    if (!supportedIndonesianModels.includes(modelId) && !hideAlert) {
+      setShowAlert(true);
+    } else {
+      setShowAlert(false); 
+    }
+
+    const modelNames: { [key: string]: string } = {
+      'gemma-3-27b-it': 'Gemma 3',
+      'gemini-2.5-flash': 'Gemini 2.5 Flash',
+      'mistralai/mistral-small-3.2-24b-instruct:free': 'Mistral 3.2',
+      'qwen/qwen3-30b-a3b:free': 'Qwen 3',
+      'deepseek/deepseek-r1-0528:free': 'DeepSeek R1'
+    };
+    
+    if (messages.length > 0) {
+      const modelName = modelNames[modelId] || modelId;
+      const modelChangeMessage: Message = {
+        text: `🔄 Switched to **${modelName}**. Your conversation will continue with the new model.`,
+        isUser: false
+      };
+      setMessages(prev => [...prev, modelChangeMessage]);
+    }
   };
 
   const handleCopy = (text: string, index: number) => {
@@ -181,7 +216,11 @@ export default function ChatPage() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history }),
+        body: JSON.stringify({ 
+          message, 
+          history,
+          modelId: selectedModel 
+        }),
       });
 
       const data = await response.json();
@@ -201,7 +240,8 @@ export default function ChatPage() {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-      setMessages((prev) => [...prev, { text: `Error: ${errorMessage}`, isUser: false }]);
+      const errorMsg = `❌ **Error**: ${errorMessage}`;
+      setMessages((prev) => [...prev, { text: errorMsg, isUser: false }]);
     } finally {
       setIsLoading(false);
     }
@@ -273,54 +313,47 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen bg-[#081423] text-white">
       {/* desktop sidebar */}
-      <Sidebar onNewChat={handleNewChat} />
+      <Sidebar 
+        onNewChat={handleNewChat} 
+        selectedModel={selectedModel}
+        onModelChange={handleModelChange}
+        disabled={isLoading}
+      />
 
       {/* mobile sidebar */}
       <Sidebar 
         onNewChat={handleNewChat} 
         isMobile={true} 
         isOpen={isMobileSidebarOpen} 
-        onClose={() => setIsMobileSidebarOpen(false)} 
+        onClose={() => setIsMobileSidebarOpen(false)}
+        selectedModel={selectedModel}
+        onModelChange={handleModelChange}
+        disabled={isLoading}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* mobile header - only show when there are messages */}
-        {hasMessages && (
-          <header className="md:hidden bg-[#0F1528] border-b border-slate-700 p-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setIsMobileSidebarOpen(true)}
-                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-              >
-                <Menu className="h-5 w-5" />
-              </button>
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 bg-[#0b36d23f] rounded-lg flex items-center justify-center">
-                  <MoonStar className="h-5 w-5 text-white" />
-                </div>
-                <h1 className="text-lg font-bold text-white">Ricky&#39;s LM Demo</h1>
+        {/* mobile header - always show */}
+        <header className="md:hidden bg-[#0F1528] border-b border-slate-700 p-4">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 bg-[#0b36d23f] rounded-lg flex items-center justify-center">
+                <MoonStar className="h-5 w-5 text-white" />
               </div>
-              <div className="w-9" />
+              <h1 className="text-lg font-bold text-white">Ricky&#39;s LM Demo</h1>
             </div>
-          </header>
-        )}
+            <div className="w-9" /> {/* Placeholder for alignment */}
+          </div>
+        </header>
 
         <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
           {messages.length === 0 && !isLoading ? (
             <div className="flex h-full flex-col">
-              {/* mobile header integrated into welcome screen */}
-              <div className="md:hidden flex items-center justify-center p-6 border-b border-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-[#0b36d23f] rounded-lg flex items-center justify-center">
-                    <MoonStar className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-bold text-white">Ricky&#39;s LM Demo</h1>
-                  </div>
-                </div>
-              </div>
-
-              {/* welcome content */}
               <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center max-w-2xl mx-auto">
                   <div className="mb-12">
@@ -400,7 +433,7 @@ export default function ChatPage() {
 
         <footer className="bg-[#081423] p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
-           <SuggestionButtons
+            <SuggestionButtons
               suggestions={messages.length === 0 && !isLoading ? promptSuggestions : []}
               onSuggestionClick={handleSuggestionClick}
               disabled={isLoading}
@@ -418,6 +451,87 @@ export default function ChatPage() {
           </div>
         </footer>
       </div>
+
+      {/* alert modal */}
+      {showAlert && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          {/* backdrop with blur */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm" 
+            onClick={() => setShowAlert(false)} 
+          />
+          {/* alert content */}
+          <div className="relative bg-slate-800 border border-slate-700 rounded-xl p-8 max-w-lg w-full shadow-2xl">
+            {/* warning icon */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="h-16 w-16 bg-amber-100 rounded-full flex items-center justify-center">
+                <svg className="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+            </div>
+            
+            <h2 className="text-xl font-bold text-white mb-4 text-center">Pemberitahuan Dukungan Bahasa</h2>
+            
+            <div className="space-y-4 text-slate-300">
+              <p className="text-center">
+                <strong className="text-amber-400">Dukungan Bahasa Indonesia</strong> tidak ada atau nyaris dikit di beberapa model.
+              </p>
+              
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-600">
+                <p className="text-sm font-medium text-green-400 mb-2">✅ Bisa dipakai:</p>
+                <ul className="text-sm space-y-1 text-slate-300">
+                  <li>• Gemini 2.5 Flash</li>
+                  <li>• Gemma 3</li>
+                  <li>• DeepSeek R1</li>
+                </ul>
+              </div>
+              
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-600">
+                <p className="text-sm font-medium text-amber-400 mb-2">⚠️ Tidak bisa atau sedikit:</p>
+                <ul className="text-sm space-y-1 text-slate-300">
+                  <li>• Mistral 3.2</li>
+                  <li>• Qwen 3</li>
+                </ul>
+              </div>
+              
+              <p className="text-sm text-center text-slate-400">
+                Please click <span className="text-sky-500">don't show again</span> if you're not using Indonesian language.
+              </p>
+            </div>
+            
+            <div className="space-y-3 mt-8">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setSelectedModel('gemini-2.5-flash');
+                    setShowAlert(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors duration-200 font-medium text-sm"
+                >
+                  Ganti Ke Gemini
+                </button>
+                <button
+                  onClick={() => setShowAlert(false)}
+                  className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500 transition-colors duration-200 font-medium text-sm"
+                >
+                  Lanjut Saja
+                </button>
+              </div>
+              
+              <button
+                onClick={() => {
+                  localStorage.setItem('hideIndonesianAlert', 'true');
+                  setShowAlert(false);
+                }}
+                className="w-full px-4 py-2 text-slate-400 hover:text-slate-300 text-sm underline hover:no-underline transition-colors duration-200"
+              >
+                Don't show this again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

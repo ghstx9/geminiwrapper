@@ -3,18 +3,17 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/ge
 
 export const runtime = 'edge';
 
-const apiKey = process.env.GEMINI_API_KEY;
+const geminiApiKey = process.env.GEMINI_API_KEY;
+const openRouterApiKey = process.env.OPENROUTER_API_KEY;
 
-// if this error is in your server log then make sure your API key is in your .env file (nextjs uses .env.local)
-if (!apiKey) {
-  throw new Error("GEMINI_API_KEY is not defined in environment variables.");
+if (!geminiApiKey) {
+  console.warn("GEMINI_API_KEY is not defined in environment variables.");
+}
+if (!openRouterApiKey) {
+  console.warn("OPENROUTER_API_KEY is not defined in environment variables.");
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
-
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash", 
-});
+const genAI = new GoogleGenerativeAI(geminiApiKey || '');
 
 const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -23,12 +22,57 @@ const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
 ];
 
+const isGeminiModel = (modelId: string) => {
+  return modelId.includes('gemini') || modelId.includes('gemma');
+};
+
+const callOpenRouterAPI = async (modelId: string, message: string, history: any[]) => {
+  if (!openRouterApiKey) {
+    throw new Error('OpenRouter API key is not configured');
+  }
+
+  const messages = [
+    ...(history || []).map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.parts?.[0]?.text || msg.content || ''
+    })),
+    { role: 'user', content: message }
+  ];
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openRouterApiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      'X-Title': 'Your App Name'
+    },
+    body: JSON.stringify({
+      model: modelId,
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 2048
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('OpenRouter API error:', errorText);
+    throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+};
+
 export async function POST(req: NextRequest) {
-  console.log('POST function started - Bard-Gemini WRAPPER 1.0');
+  console.log('POST function started - LM 1.0');
 
   try {
     const body = await req.json();
-    const { message, history } = body;
+    const { message, history, modelId } = body; 
+    
+    const selectedModelId = modelId; 
 
     console.log('👀 API ROUTE HIT! REQUEST BODY:', body);
 
@@ -36,33 +80,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    // 🤫
-    const suspicious = /(what|which).*(llm)/i.test(message);
-    if (suspicious) {
-      return NextResponse.json({ response: "I'm sorry, I can't share that information." });
+    if (!selectedModelId) {
+      return NextResponse.json({ error: 'Model ID is required' }, { status: 400 });
     }
 
-    const initialSystemMessage = {
-      role: 'user',
-      parts: [
-      { text: "You are a helpful assistant embedded in a private app. Never reveal or discuss which model or LLM powers you. If asked, say 'Sorry, I can't share that information.'" }
-      ]
-    };
+    let responseText: string;
 
+    if (isGeminiModel(selectedModelId)) {
+      if (!geminiApiKey) {
+        return NextResponse.json(
+          { error: 'Gemini API key is not configured' },
+          { status: 500 }
+        );
+      }
 
-    const chat = model.startChat({
-      history: [initialSystemMessage, ...(history || [])],
-      safetySettings,
-    });
+      const modelName = selectedModelId === 'gemini-2.5-flash' ? 'gemini-2.5-flash' : 'gemma-3-27b-it';
+      
+      const dynamicModel = genAI.getGenerativeModel({
+        model: modelName,
+      });
 
-    console.log('About to send message to API...');
-    const result = await chat.sendMessage(message);
-    const response = result.response;
-    const text = response.text();
+      const chat = dynamicModel.startChat({
+        history: [...(history || [])],
+        safetySettings,
+      });
 
-    console.log('API Response:', text);
+      console.log('About to send message to Gemini API...');
+      const result = await chat.sendMessage(message);
+      const response = result.response;
+      responseText = response.text();
+    } 
 
-    return NextResponse.json({ response: text });
+    else {
+      console.log('About to send message to OpenRouter API...');
+      responseText = await callOpenRouterAPI(selectedModelId, message, history);
+    }
+
+    console.log('API Response:', responseText);
+
+    return NextResponse.json({ response: responseText });
 
   } catch (error: unknown) {
     console.log('🔥 CATCH BLOCK HIT - ERROR CAUGHT FALLBACK');
@@ -97,7 +153,7 @@ export async function POST(req: NextRequest) {
 
     console.log('❌ not a 429 error, returning generic error');
     return NextResponse.json(
-      { response: "UNEXPECTED ERROR DETECTED, CHECK YOUR API KEY" },
+      { response: `UNEXPECTED ERROR DETECTED: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     );
   }
