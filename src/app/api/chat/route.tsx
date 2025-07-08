@@ -24,46 +24,6 @@ const safetySettings = [
   { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
 ];
 
-export async function GET() {
-  console.log('GET function for suggestions started');
-  try {
-    const prompt = `
-      Generate 3 brief, interesting but very short suggestions for a generic AI chatbot.
-      The suggestions should be suitable for a general audience.
-      Return them as a valid JSON array of strings.
-      For example:
-      ["Explain quantum computing in simple terms", "What are some creative gift ideas for a friend who loves hiking?", "Write a short poem about the city at night"]
-    `;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    
-    console.log('Gemini suggestion response:', text);
-
-    const jsonString = text.replace(/```json|```/g, '').trim();
-
-    const suggestions = JSON.parse(jsonString);
-
-    if (!Array.isArray(suggestions)) {
-        throw new Error("Response from AI was not a valid array.");
-    }
-
-    return NextResponse.json({ suggestions });
-
-  } catch (error) {
-    console.error('--- ERROR IN SUGGESTION API (GET) ---', error);
-    // in case of an error, return a fallback set of suggestions to ensure the user interface doesn't break.
-    const fallbackSuggestions = [
-        "Explain the theory of relativity",
-        "What are some healthy dinner recipes?",
-        "Write a short story about a time traveler"
-    ];
-    return NextResponse.json({ suggestions: fallbackSuggestions }, { status: 500 });
-  }
-}
-
-
 export async function POST(req: NextRequest) {
   console.log('POST function started - Bard-Gemini WRAPPER 1.0');
   
