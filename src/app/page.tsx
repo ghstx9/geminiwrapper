@@ -280,7 +280,7 @@ export default function ChatPage() {
               <MoonStar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Ricky's LM Demo</h1>
+              <h1 className="text-xl font-bold text-white">Ricky&#39;s LM Demo</h1>
             </div>
           </div>
           <button
@@ -308,7 +308,7 @@ export default function ChatPage() {
                     <MoonStar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-white">Ricky's LM Demo</h1>
+                    <h1 className="text-xl font-bold text-white">Ricky&#39;s LM Demo</h1>
                   </div>
                 </div>
                 <button
@@ -345,7 +345,7 @@ export default function ChatPage() {
                 <div className="h-8 w-8 bg-cyan-500 rounded-lg flex items-center justify-center">
                   <MoonStar className="h-5 w-5 text-white" />
                 </div>
-                <h1 className="text-lg font-bold text-white">Ricky's LM Demo</h1>
+                <h1 className="text-lg font-bold text-white">Ricky&#39;s LM Demo</h1>
               </div>
               <div className="w-9" />
             </div>
