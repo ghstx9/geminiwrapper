@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { User, MoonStar, Plus, ExternalLink, Copy, Check, Menu, X } from 'lucide-react';
+import { User, MoonStar, ExternalLink, Copy, Check, Menu } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import PromptInput from '../components/promptinput';
 import SuggestionButtons from '../components/suggestionbuttons';
+import Sidebar from '../components/sidebar';
 
 interface Message {
   text: string;
@@ -138,7 +139,6 @@ export default function ChatPage() {
     setMessages([]);
     setIsLoading(false);
     setPromptSuggestions(getRandomSuggestions());
-    setIsMobileSidebarOpen(false);
   };
 
   const handleCopy = (text: string, index: number) => {
@@ -273,67 +273,20 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen bg-[#081423] text-white">
       {/* desktop sidebar */}
-      <aside className="w-80 bg-[#0F1528] border-r border-[#0F1528] hidden md:flex flex-col">
-        <div className="p-6 border-b border-[#0F1528]">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-10 w-10 bg-cyan-500 rounded-lg flex items-center justify-center">
-              <MoonStar className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">Ricky&#39;s LM Demo</h1>
-            </div>
-          </div>
-          <button
-            onClick={handleNewChat}
-            className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
-          >
-            <Plus className="h-5 w-5" />
-            <span>New Chat</span>
-          </button>
-        </div>
-        <div className="flex-1 p-6">
-          {/* Chat history could go here */}
-        </div>
-      </aside>
+      <Sidebar onNewChat={handleNewChat} />
 
-      {/* mobile sidebar overlay */}
-      {isMobileSidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileSidebarOpen(false)} />
-          <div className="fixed left-0 top-0 h-full w-80 bg-slate-800 border-r border-slate-700">
-            <div className="p-6 border-b border-slate-700">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-cyan-500 rounded-lg flex items-center justify-center">
-                    <MoonStar className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-bold text-white">Ricky&#39;s LM Demo</h1>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <button
-                onClick={handleNewChat}
-                className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
-              >
-                <Plus className="h-5 w-5" />
-                <span>New Chat</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* mobile sidebar */}
+      <Sidebar 
+        onNewChat={handleNewChat} 
+        isMobile={true} 
+        isOpen={isMobileSidebarOpen} 
+        onClose={() => setIsMobileSidebarOpen(false)} 
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* mobile header - only show when there are messages */}
         {hasMessages && (
-          <header className="md:hidden bg-slate-800 border-b border-slate-700 p-4">
+          <header className="md:hidden bg-[#0F1528] border-b border-slate-700 p-4">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
@@ -342,7 +295,7 @@ export default function ChatPage() {
                 <Menu className="h-5 w-5" />
               </button>
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 bg-cyan-500 rounded-lg flex items-center justify-center">
+                <div className="h-8 w-8 bg-[#0b36d23f] rounded-lg flex items-center justify-center">
                   <MoonStar className="h-5 w-5 text-white" />
                 </div>
                 <h1 className="text-lg font-bold text-white">Ricky&#39;s LM Demo</h1>
@@ -358,7 +311,7 @@ export default function ChatPage() {
               {/* mobile header integrated into welcome screen */}
               <div className="md:hidden flex items-center justify-center p-6 border-b border-slate-700">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-cyan-500 rounded-lg flex items-center justify-center">
+                  <div className="h-10 w-10 bg-[#0b36d23f] rounded-lg flex items-center justify-center">
                     <MoonStar className="h-6 w-6 text-white" />
                   </div>
                   <div>
