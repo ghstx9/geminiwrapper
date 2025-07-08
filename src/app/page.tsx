@@ -308,8 +308,6 @@ export default function ChatPage() {
     ),
   };
 
-  const hasMessages = messages.length > 0;
-
   return (
     <div className="flex h-screen bg-[#081423] text-white">
       {/* desktop sidebar */}
@@ -496,7 +494,7 @@ export default function ChatPage() {
               </div>
               
               <p className="text-sm text-center text-slate-400">
-                Please click <span className="text-sky-500">don't show again</span> if you're not using Indonesian language.
+                Please click <span className="text-sky-500">don&#39;t show again</span> if you&#39;re not using Indonesian language.
               </p>
             </div>
             
@@ -526,7 +524,7 @@ export default function ChatPage() {
                 }}
                 className="w-full px-4 py-2 text-slate-400 hover:text-slate-300 text-sm underline hover:no-underline transition-colors duration-200"
               >
-                Don't show this again
+                Don&#39;t show this again
               </button>
             </div>
           </div>
