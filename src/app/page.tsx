@@ -54,35 +54,35 @@ const CodeBlock = (props: React.ComponentProps<'code'> & { inline?: boolean }) =
 
     if (inline) {
         return (
-            <code className="bg-slate-800/60 text-cyan-300 px-2 py-1 rounded-md text-sm font-mono border border-slate-700/50" {...restProps}>
+            <code className="bg-slate-800 text-cyan-300 px-2 py-1 rounded-md text-sm font-mono border border-slate-700" {...restProps}>
                 {children}
             </code>
         );
     }
 
     return (
-        <div className="relative group/code-block my-4 rounded-xl overflow-hidden border border-slate-700/50 shadow-lg">
-            <div className="flex items-center justify-between bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-3 border-b border-slate-700/50">
+        <div className="relative group/code-block my-6 rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
+            <div className="flex items-center justify-between bg-slate-800 px-4 py-3 border-b border-slate-700">
                 <span className="text-sm font-medium text-slate-300">{match ? match[1] : 'code'}</span>
                 <button
                     onClick={handleCopyCode}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition-all duration-200 border border-slate-700/50"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors duration-200 text-xs font-medium"
                     aria-label="Copy code"
                 >
                     {copied ? (
                         <>
                             <Check className="h-4 w-4 text-green-400" />
-                            <span className="text-xs font-medium">Copied!</span>
+                            <span>Copied!</span>
                         </>
                     ) : (
                         <>
                             <Copy className="h-4 w-4" />
-                            <span className="text-xs font-medium">Copy</span>
+                            <span>Copy</span>
                         </>
                     )}
                 </button>
             </div>
-            <pre className="bg-slate-900/80 text-slate-200 p-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/50">
+            <pre className="bg-slate-900 text-slate-100 p-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
                 <code className={className} {...restProps}>
                     {children}
                 </code>
@@ -236,7 +236,7 @@ export default function ChatPage() {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 decoration-cyan-400/50 hover:decoration-cyan-300/70 transition-all duration-200 inline-flex items-center gap-1"
+        className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 decoration-cyan-400/50 hover:decoration-cyan-300 transition-colors duration-200 inline-flex items-center gap-1"
         {...props}
       >
         {children}
@@ -244,17 +244,17 @@ export default function ChatPage() {
       </a>
     ),
     p: ({ children, ...props }) => (
-      <p className="mb-3 last:mb-0 text-slate-100 leading-relaxed" {...props}>
+      <p className="mb-4 last:mb-0 text-slate-100 leading-relaxed" {...props}>
         {children}
       </p>
     ),
     ul: ({ children, ...props }) => (
-      <ul className="list-disc list-inside mb-3 space-y-2 text-slate-100" {...props}>
+      <ul className="list-disc list-inside mb-4 space-y-2 text-slate-100" {...props}>
         {children}
       </ul>
     ),
     ol: ({ children, ...props }) => (
-      <ol className="list-decimal list-inside mb-3 space-y-2 text-slate-100" {...props}>
+      <ol className="list-decimal list-inside mb-4 space-y-2 text-slate-100" {...props}>
         {children}
       </ol>
     ),
@@ -265,22 +265,22 @@ export default function ChatPage() {
     ),
     code: CodeBlock as Components['code'],
     blockquote: ({ children, ...props }) => (
-      <blockquote className="border-l-4 border-gradient-to-b from-cyan-500 to-blue-500 bg-slate-800/30 pl-4 pr-4 py-2 italic text-slate-200 my-4 rounded-r-lg" {...props}>
+      <blockquote className="border-l-4 border-cyan-500 bg-slate-800 pl-4 pr-4 py-3 italic text-slate-200 my-4 rounded-r-lg" {...props}>
         {children}
       </blockquote>
     ),
     h1: ({ children, ...props }) => (
-      <h1 className="text-2xl font-bold text-slate-100 mb-4 mt-6 first:mt-0" {...props}>
+      <h1 className="text-2xl font-bold text-white mb-4 mt-6 first:mt-0" {...props}>
         {children}
       </h1>
     ),
     h2: ({ children, ...props }) => (
-      <h2 className="text-xl font-semibold text-slate-100 mb-3 mt-5 first:mt-0" {...props}>
+      <h2 className="text-xl font-semibold text-white mb-3 mt-6 first:mt-0" {...props}>
         {children}
       </h2>
     ),
     h3: ({ children, ...props }) => (
-      <h3 className="text-lg font-medium text-slate-100 mb-2 mt-4 first:mt-0" {...props}>
+      <h3 className="text-lg font-medium text-white mb-2 mt-4 first:mt-0" {...props}>
         {children}
       </h3>
     ),
@@ -289,174 +289,186 @@ export default function ChatPage() {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="flex h-screen bg-slate-900 text-white font-sans">
+    <div className="flex h-screen bg-[#081423] text-white">
       {/* desktop sidebar */}
-      <aside className="w-72 bg-slate-800/40 backdrop-blur-sm border-r border-slate-700/50 p-6 hidden md:flex flex-col">
-        <div className="flex items-center gap-3 mb-10">
-            <div className="relative">
-              <MoonStar className="h-8 w-8 text-cyan-400" />
+      <aside className="w-80 bg-[#0F1528] border-r border-[#0F1528] hidden md:flex flex-col">
+        <div className="p-6 border-b border-[#0F1528]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 bg-cyan-500 rounded-lg flex items-center justify-center">
+              <MoonStar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-100">gemini-wrapper</h1>
-              <p className="text-xs text-slate-400">AI-powered conversations</p>
+              <h1 className="text-xl font-bold text-white">gemini-wrapper</h1>
             </div>
-        </div>
-        <button
+          </div>
+          <button
             onClick={handleNewChat}
-            className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+            className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
+          >
             <Plus className="h-5 w-5" />
             <span>New Chat</span>
-        </button>
+          </button>
+        </div>
+        <div className="flex-1 p-6">
+          {/* Chat history could go here */}
+        </div>
       </aside>
 
       {/* mobile sidebar overlay */}
       {isMobileSidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileSidebarOpen(false)} />
-          <div className="fixed left-0 top-0 h-full w-64 bg-slate-800/95 backdrop-blur-sm border-r border-slate-700/50 p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <MoonStar className="h-6 w-6 text-cyan-400" />
+          <div className="fixed left-0 top-0 h-full w-80 bg-slate-800 border-r border-slate-700">
+            <div className="p-6 border-b border-slate-700">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-cyan-500 rounded-lg flex items-center justify-center">
+                    <MoonStar className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-white">gemini-wrapper</h1>
+                    <p className="text-sm text-slate-400">AI Assistant</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-lg font-bold text-slate-100">gemini-wrapper</h1>
-                  <p className="text-xs text-slate-400">AI Assistant</p>
-                </div>
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
               <button
-                onClick={() => setIsMobileSidebarOpen(false)}
-                className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors"
+                onClick={handleNewChat}
+                className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
               >
-                <X className="h-5 w-5" />
+                <Plus className="h-5 w-5" />
+                <span>New Chat</span>
               </button>
             </div>
-            <button
-              onClick={handleNewChat}
-              className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-              <Plus className="h-5 w-5" />
-              <span>New Chat</span>
-            </button>
           </div>
         </div>
       )}
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* mobile header - only show when there are messages */}
         {hasMessages && (
-          <header className="md:hidden bg-slate-800/40 backdrop-blur-sm border-b border-slate-700/50 p-4">
+          <header className="md:hidden bg-slate-800 border-b border-slate-700 p-4">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors"
+                className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
               >
                 <Menu className="h-5 w-5" />
               </button>
               <div className="flex items-center gap-3">
-                <div className="relative">
-                  <MoonStar className="h-6 w-6 text-cyan-400" />
+                <div className="h-8 w-8 bg-cyan-500 rounded-lg flex items-center justify-center">
+                  <MoonStar className="h-5 w-5 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-lg font-bold text-slate-100">gemini-wrapper</h1>
-                </div>
+                <h1 className="text-lg font-bold text-white">gemini-wrapper</h1>
               </div>
-              <div className="w-9" /> {/* Spacer for centering */}
+              <div className="w-9" />
             </div>
           </header>
         )}
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-thin scrollbar-thumb-cyan-500/30 scrollbar-track-slate-800/40">
-            {messages.length === 0 && !isLoading ? (
-              <div className="flex h-full flex-col">
-                {/* mobile header integrated into welcome screen - only show when no messages */}
-                <div className="md:hidden flex items-center justify-center mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <MoonStar className="h-6 w-6 text-cyan-400" />
-                    </div>
-                    <div>
-                      <h1 className="text-lg font-bold text-slate-100">gemini-wrapper</h1>
-                      <p className="text-xs text-slate-400">AI Assistant</p>
-                    </div>
+        <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+          {messages.length === 0 && !isLoading ? (
+            <div className="flex h-full flex-col">
+              {/* mobile header integrated into welcome screen */}
+              <div className="md:hidden flex items-center justify-center p-6 border-b border-slate-700">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 bg-cyan-500 rounded-lg flex items-center justify-center">
+                    <MoonStar className="h-6 w-6 text-white" />
                   </div>
-                </div>
-
-                {/* welcome content - centered on remaining space */}
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center max-w-2xl mx-auto">
-                    <div className="mb-8">
-                      <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-indigo-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
-                        Hey there, ember.
-                      </h1>
-                    </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-white">gemini-wrapper</h1>
+                    <p className="text-sm text-slate-400">AI Assistant</p>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="max-w-4xl mx-auto space-y-8">
+
+              {/* welcome content */}
+              <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center max-w-2xl mx-auto">
+                  <div className="mb-12">
+                    <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+                      Hey there, <span className="text-cyan-400">ember</span>.
+                    </h1>
+                    <p className="text-xl text-slate-400 leading-relaxed">
+                      Ready to dive into a conversation? Ask me anything you'd like to know.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-4xl mx-auto p-6 md:p-8">
+              <div className="space-y-8">
                 {messages.map((msg, index) => (
-                  <div key={index} className={`flex items-start gap-4 ${msg.isUser ? 'justify-end' : 'justify-start'}`}>
-                    {!msg.isUser && (
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg">
-                        <MoonStar className="h-5 w-5 text-white" />
-                      </div>
-                    )}
-                    <div className={`group relative rounded-2xl p-5 max-w-3xl shadow-lg ${
+                  <div key={index} className={`flex items-start gap-4 ${msg.isUser ? 'flex-row-reverse' : ''}`}>
+                    <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
                       msg.isUser 
-                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white ml-auto' 
-                        : 'bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 text-slate-100'
+                        ? 'bg-slate-700' 
+                        : 'bg-cyan-500'
+                    }`}>
+                      {msg.isUser ? (
+                        <User className="h-5 w-5 text-white" />
+                      ) : (
+                        <MoonStar className="h-5 w-5 text-white" />
+                      )}
+                    </div>
+                    <div className={`group relative rounded-2xl p-6 max-w-3xl ${
+                      msg.isUser 
+                        ? 'bg-slate-700 text-white' 
+                        : 'bg-slate-800 border border-slate-700 text-slate-100'
                     }`}>
                       {msg.isUser ? (
                         <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
                       ) : (
                         <>
-                          <div className="prose prose-invert prose-slate max-w-none">
+                          <div className="prose prose-invert max-w-none">
                             <ReactMarkdown components={markdownComponents}>
                               {convertUrlsToLinks(msg.text)}
                             </ReactMarkdown>
                           </div>
                           <button
                             onClick={() => handleCopy(msg.text, index)}
-                            className="absolute top-3 right-3 p-2 rounded-lg bg-slate-800/50 backdrop-blur-sm text-slate-400 hover:bg-slate-700/50 hover:text-slate-200 opacity-0 group-hover:opacity-100 transition-all duration-200 border border-slate-700/50"
+                            className="absolute top-4 right-4 p-2 rounded-lg bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200"
                             aria-label="Copy message"
                           >
                             {copiedMessageIndex === index ? (
-                                <Check className="h-4 w-4 text-green-400" />
+                              <Check className="h-4 w-4 text-green-400" />
                             ) : (
-                                <Copy className="h-4 w-4" />
+                              <Copy className="h-4 w-4" />
                             )}
                           </button>
                         </>
                       )}
                     </div>
-                    {msg.isUser && (
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-r from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
-                        <User className="h-5 w-5 text-white" />
-                      </div>
-                    )}
                   </div>
                 ))}
                 {isLoading && (
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg">
+                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-cyan-500 flex items-center justify-center">
                       <MoonStar className="h-5 w-5 text-white" />
                     </div>
-                    <div className="rounded-2xl p-5 max-w-lg bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 shadow-lg">
-                      <div className="flex items-center justify-center space-x-2">
+                    <div className="rounded-2xl p-6 max-w-lg bg-slate-800 border border-slate-700">
+                      <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
                         <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse [animation-delay:0.2s]"></div>
                         <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse [animation-delay:0.4s]"></div>
+                        <span className="text-sm text-slate-400 ml-2">Thinking...</span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-2 text-center">Thinking...</p>
                     </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
-            )}
+            </div>
+          )}
         </main>
 
-        <footer className="p-4 md:p-8 bg-slate-900/50 backdrop-blur-sm border-t border-slate-700/50">
+        <footer className="bg-[#081423] p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
             {messages.length === 0 && !isLoading && promptSuggestions.length > 0 && (
               <div className="flex flex-wrap justify-center gap-3 mb-6">
@@ -464,7 +476,7 @@ export default function ChatPage() {
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(suggestion)}
-                    className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 text-sm text-slate-300 rounded-xl py-3 px-5 hover:bg-slate-700/60 hover:border-cyan-500/50 hover:text-cyan-300 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm rounded-xl py-3 px-5 transition-all duration-200 hover:scale-105 border border-slate-600"
                   >
                     {suggestion}
                   </button>
@@ -472,7 +484,7 @@ export default function ChatPage() {
               </div>
             )}
             <form ref={formRef} onSubmit={handleSubmit} className="relative">
-              <div className="relative rounded-2xl bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-200">
+              <div className="relative rounded-2xl bg-slate-700 border border-slate-600 hover:border-slate-500 transition-colors duration-200">
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -480,12 +492,12 @@ export default function ChatPage() {
                   onKeyDown={handleKeyDown}
                   placeholder="Ask anything..."
                   rows={1}
-                  className="w-full bg-transparent py-4 pl-6 pr-16 text-white placeholder-slate-400 focus:outline-none resize-none max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800/40 rounded-2xl"
+                  className="w-full bg-transparent py-4 pl-6 pr-16 text-white placeholder-slate-400 focus:outline-none resize-none max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700 rounded-2xl"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
-                  className="absolute right-3 bottom-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-all duration-200 flex items-center justify-center transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="absolute right-3 bottom-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
                   disabled={isLoading || !input.trim()}
                   aria-label="Send message"
                 >
@@ -494,7 +506,7 @@ export default function ChatPage() {
               </div>
             </form>
             <p className="text-xs text-center text-slate-500 mt-4">
-              AI still can make mistakes. Please double-check responses.
+              AI can make mistakes. Please verify important information.
             </p>
           </div>
         </footer>
