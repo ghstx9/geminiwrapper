@@ -286,7 +286,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen bg-slate-900 text-white font-sans">
-      {/* Enhanced desktop sidebar */}
+      {/* enhanced desktop sidebar */}
       <aside className="w-72 bg-slate-800/40 backdrop-blur-sm border-r border-slate-700/50 p-6 hidden md:flex flex-col">
         <div className="flex items-center gap-3 mb-10">
             <div className="relative">
@@ -309,12 +309,11 @@ export default function ChatPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-thin scrollbar-thumb-cyan-500/30 scrollbar-track-slate-800/40">
             {messages.length === 0 && !isLoading ? (
               <div className="flex h-full flex-col">
-                {/* Mobile header integrated into welcome screen */}
+                {/* mobile header integrated into welcome screen */}
                 <div className="md:hidden flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <MoonStar className="h-6 w-6 text-cyan-400" />
-                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-pulse"></div>
                     </div>
                     <div>
                       <h1 className="text-lg font-bold text-slate-100">gemini-wrapper</h1>
@@ -329,7 +328,7 @@ export default function ChatPage() {
                   </button>
                 </div>
 
-                {/* Welcome content - centered on remaining space */}
+                {/* welcome content - centered on remaining space */}
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center max-w-2xl mx-auto">
                     <div className="mb-8">
