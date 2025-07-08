@@ -1,4 +1,3 @@
-// components/SuggestionButtons.tsx
 import React from 'react';
 
 interface SuggestionButtonsProps {

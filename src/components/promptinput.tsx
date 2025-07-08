@@ -1,4 +1,3 @@
-// components/PromptInput.tsx
 import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { ArrowUp } from 'lucide-react';
 
