@@ -362,7 +362,7 @@ export default function ChatPage() {
                     <MoonStar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-white">Integrated Header</h1>
+                    <h1 className="text-xl font-bold text-white">Ricky&#39;s LM Demo</h1>
                   </div>
                 </div>
               </div>
