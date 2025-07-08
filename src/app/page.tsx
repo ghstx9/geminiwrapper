@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
-import { Send, User, MoonStar, Plus, ExternalLink, Copy, Check } from 'lucide-react';
+import { Send, User, MoonStar, Plus, ExternalLink, Copy, Check, Menu, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 
@@ -111,6 +111,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   const [promptSuggestions, setPromptSuggestions] = useState<string[]>(allSuggestions.slice(0, 3));
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
@@ -146,6 +147,7 @@ export default function ChatPage() {
     setInput('');
     setIsLoading(false);
     setPromptSuggestions(getRandomSuggestions());
+    setIsMobileSidebarOpen(false);
   };
 
   const handleCopy = (text: string, index: number) => {
@@ -284,9 +286,11 @@ export default function ChatPage() {
     ),
   };
 
+  const hasMessages = messages.length > 0;
+
   return (
     <div className="flex h-screen bg-slate-900 text-white font-sans">
-      {/* enhanced desktop sidebar */}
+      {/* desktop sidebar */}
       <aside className="w-72 bg-slate-800/40 backdrop-blur-sm border-r border-slate-700/50 p-6 hidden md:flex flex-col">
         <div className="flex items-center gap-3 mb-10">
             <div className="relative">
@@ -305,12 +309,67 @@ export default function ChatPage() {
         </button>
       </aside>
 
+      {/* mobile sidebar overlay */}
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setIsMobileSidebarOpen(false)} />
+          <div className="fixed left-0 top-0 h-full w-64 bg-slate-800/95 backdrop-blur-sm border-r border-slate-700/50 p-6 flex flex-col">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <MoonStar className="h-6 w-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-slate-100">gemini-wrapper</h1>
+                  <p className="text-xs text-slate-400">AI Assistant</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <button
+              onClick={handleNewChat}
+              className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+              <Plus className="h-5 w-5" />
+              <span>New Chat</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 flex flex-col">
+        {/* mobile header - only show when there are messages */}
+        {hasMessages && (
+          <header className="md:hidden bg-slate-800/40 backdrop-blur-sm border-b border-slate-700/50 p-4">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 transition-colors"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <MoonStar className="h-6 w-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-slate-100">gemini-wrapper</h1>
+                </div>
+              </div>
+              <div className="w-9" /> {/* Spacer for centering */}
+            </div>
+          </header>
+        )}
+
         <main className="flex-1 overflow-y-auto p-4 md:p-8 scrollbar-thin scrollbar-thumb-cyan-500/30 scrollbar-track-slate-800/40">
             {messages.length === 0 && !isLoading ? (
               <div className="flex h-full flex-col">
-                {/* mobile header integrated into welcome screen */}
-                <div className="md:hidden flex items-center justify-between mb-8">
+                {/* mobile header integrated into welcome screen - only show when no messages */}
+                <div className="md:hidden flex items-center justify-center mb-8">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <MoonStar className="h-6 w-6 text-cyan-400" />
@@ -320,19 +379,12 @@ export default function ChatPage() {
                       <p className="text-xs text-slate-400">AI Assistant</p>
                     </div>
                   </div>
-                  <button
-                    onClick={handleNewChat}
-                    className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
-                    <Plus className="h-4 w-4" />
-                    <span className="text-sm">New</span>
-                  </button>
                 </div>
 
                 {/* welcome content - centered on remaining space */}
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center max-w-2xl mx-auto">
                     <div className="mb-8">
-                      
                       <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-indigo-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
                         Hey there, ember.
                       </h1>
