@@ -37,12 +37,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 🤫
-    const suspicious = /(what|which).*(llm|model|ai|provider)/i.test(message);
+    const suspicious = /(what|which).*(llm)/i.test(message);
     if (suspicious) {
       return NextResponse.json({ response: "I'm sorry, I can't share that information." });
     }
 
-    // 🧠 Priming message to prevent identity disclosure
     const initialSystemMessage = {
       role: 'user',
       parts: [

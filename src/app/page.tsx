@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, FormEvent, useEffect, useRef, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, User, MoonStar, Plus, ExternalLink, Copy, Check, Menu, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
+import PromptInput from '../components/promptinput';
+import SuggestionButtons from '../components/suggestionbuttons';
 
 interface Message {
   text: string;
@@ -11,84 +13,84 @@ interface Message {
 }
 
 interface HistoryPart {
-    text: string;
+  text: string;
 }
 
 interface HistoryItem {
-    role: 'user' | 'model';
-    parts: HistoryPart[];
+  role: 'user' | 'model';
+  parts: HistoryPart[];
 }
 
 // custom component for rendering code blocks with a copy button
 const CodeBlock = (props: React.ComponentProps<'code'> & { inline?: boolean }) => {
-    const { inline, className, children, ...restProps } = props;
-    const [copied, setCopied] = useState(false);
+  const { inline, className, children, ...restProps } = props;
+  const [copied, setCopied] = useState(false);
 
-    const handleCopyCode = () => {
-        const codeString = Array.isArray(children) 
-            ? children.join('') 
-            : typeof children === 'string' 
-                ? children 
-                : String(children || '');
-        
-        if (!codeString) return;
+  const handleCopyCode = () => {
+    const codeString = Array.isArray(children)
+      ? children.join('')
+      : typeof children === 'string'
+      ? children
+      : String(children || '');
 
-        const textArea = document.createElement('textarea');
-        textArea.value = codeString;
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        try {
-            document.execCommand('copy');
-            setCopied(true);
-            setTimeout(() => {
-                setCopied(false);
-            }, 2000);
-        } catch (err) {
-            console.error('Failed to copy code: ', err);
-        }
-        document.body.removeChild(textArea);
-    };
+    if (!codeString) return;
 
-    const match = /language-(\w+)/.exec(className || '');
-
-    if (inline) {
-        return (
-            <code className="bg-slate-800 text-cyan-300 px-2 py-1 rounded-md text-sm font-mono border border-slate-700" {...restProps}>
-                {children}
-            </code>
-        );
+    const textArea = document.createElement('textarea');
+    textArea.value = codeString;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy code: ', err);
     }
+    document.body.removeChild(textArea);
+  };
 
+  const match = /language-(\w+)/.exec(className || '');
+
+  if (inline) {
     return (
-        <div className="relative group/code-block my-6 rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
-            <div className="flex items-center justify-between bg-slate-800 px-4 py-3 border-b border-slate-700">
-                <span className="text-sm font-medium text-slate-300">{match ? match[1] : 'code'}</span>
-                <button
-                    onClick={handleCopyCode}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors duration-200 text-xs font-medium"
-                    aria-label="Copy code"
-                >
-                    {copied ? (
-                        <>
-                            <Check className="h-4 w-4 text-green-400" />
-                            <span>Copied!</span>
-                        </>
-                    ) : (
-                        <>
-                            <Copy className="h-4 w-4" />
-                            <span>Copy</span>
-                        </>
-                    )}
-                </button>
-            </div>
-            <pre className="bg-slate-900 text-slate-100 p-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                <code className={className} {...restProps}>
-                    {children}
-                </code>
-            </pre>
-        </div>
+      <code className="bg-slate-800 text-cyan-300 px-2 py-1 rounded-md text-sm font-mono border border-slate-700" {...restProps}>
+        {children}
+      </code>
     );
+  }
+
+  return (
+    <div className="relative group/code-block my-6 rounded-lg overflow-hidden border border-slate-700 bg-slate-900">
+      <div className="flex items-center justify-between bg-slate-800 px-4 py-3 border-b border-slate-700">
+        <span className="text-sm font-medium text-slate-300">{match ? match[1] : 'code'}</span>
+        <button
+          onClick={handleCopyCode}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors duration-200 text-xs font-medium"
+          aria-label="Copy code"
+        >
+          {copied ? (
+            <>
+              <Check className="h-4 w-4 text-green-400" />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="h-4 w-4" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      <pre className="bg-slate-900 text-slate-100 p-4 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
+        <code className={className} {...restProps}>
+          {children}
+        </code>
+      </pre>
+    </div>
+  );
 };
 
 const allSuggestions = [
@@ -109,15 +111,12 @@ const getRandomSuggestions = () => {
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  
+
   const [promptSuggestions, setPromptSuggestions] = useState<string[]>(allSuggestions.slice(0, 3));
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setPromptSuggestions(getRandomSuggestions());
@@ -130,21 +129,13 @@ export default function ChatPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading]);
-  
-  useEffect(() => {
-    if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [input]);
-  
+
   const handleSuggestionClick = (suggestion: string) => {
-    setInput(suggestion);
+    handlePromptSubmit(suggestion);
   };
-  
+
   const handleNewChat = () => {
     setMessages([]);
-    setInput('');
     setIsLoading(false);
     setPromptSuggestions(getRandomSuggestions());
     setIsMobileSidebarOpen(false);
@@ -169,30 +160,28 @@ export default function ChatPage() {
     document.body.removeChild(textArea);
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const handlePromptSubmit = async (message: string) => {
+    if (!message.trim() || isLoading) return;
 
     if (promptSuggestions.length > 0) {
-        setPromptSuggestions([]);
+      setPromptSuggestions([]);
     }
-    
-    const userMessage: Message = { text: input, isUser: true };
+
+    const userMessage: Message = { text: message, isUser: true };
     setMessages((prev) => [...prev, userMessage]);
 
     const history: HistoryItem[] = messages.map(msg => ({
-            role: msg.isUser ? 'user' : 'model',
-            parts: [{ text: msg.text }]
-        }));
+      role: msg.isUser ? 'user' : 'model',
+      parts: [{ text: msg.text }]
+    }));
 
     setIsLoading(true);
-    setInput('');
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input, history: history }),
+        body: JSON.stringify({ message, history }),
       });
 
       const data = await response.json();
@@ -201,9 +190,9 @@ export default function ChatPage() {
         if (response.status === 429 && data.response) {
           const aiMessage: Message = { text: data.response, isUser: false };
           setMessages((prev) => [...prev, aiMessage]);
-          return; 
+          return;
         }
-        
+
         throw new Error(data.error || data.response || `API error: ${response.statusText}`);
       }
 
@@ -215,13 +204,6 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, { text: `Error: ${errorMessage}`, isUser: false }]);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        formRef.current?.requestSubmit();
     }
   };
 
@@ -298,7 +280,7 @@ export default function ChatPage() {
               <MoonStar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">gemini-wrapper</h1>
+              <h1 className="text-xl font-bold text-white">Ricky's LM Demo</h1>
             </div>
           </div>
           <button
@@ -326,8 +308,7 @@ export default function ChatPage() {
                     <MoonStar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-white">gemini-wrapper</h1>
-                    <p className="text-sm text-slate-400">AI Assistant</p>
+                    <h1 className="text-xl font-bold text-white">Ricky's LM Demo</h1>
                   </div>
                 </div>
                 <button
@@ -364,7 +345,7 @@ export default function ChatPage() {
                 <div className="h-8 w-8 bg-cyan-500 rounded-lg flex items-center justify-center">
                   <MoonStar className="h-5 w-5 text-white" />
                 </div>
-                <h1 className="text-lg font-bold text-white">gemini-wrapper</h1>
+                <h1 className="text-lg font-bold text-white">Ricky's LM Demo</h1>
               </div>
               <div className="w-9" />
             </div>
@@ -381,8 +362,7 @@ export default function ChatPage() {
                     <MoonStar className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-white">gemini-wrapper</h1>
-                    <p className="text-sm text-slate-400">AI Assistant</p>
+                    <h1 className="text-xl font-bold text-white">Integrated Header</h1>
                   </div>
                 </div>
               </div>
@@ -391,12 +371,9 @@ export default function ChatPage() {
               <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center max-w-2xl mx-auto">
                   <div className="mb-12">
-                    <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-                      Hey there, <span className="text-cyan-400">ember</span>.
+                    <h1 className="text-3xl md:text-4xl font-bold mb-6 text-white">
+                      Good to see you, Ricky.
                     </h1>
-                    <p className="text-xl text-slate-400 leading-relaxed">
-                      Ready to dive into a conversation? Ask me anything you'd like to know.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -470,41 +447,18 @@ export default function ChatPage() {
 
         <footer className="bg-[#081423] p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
-            {messages.length === 0 && !isLoading && promptSuggestions.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-3 mb-6">
-                {promptSuggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                    className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm rounded-xl py-3 px-5 transition-all duration-200 hover:scale-105 border border-slate-600"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            )}
-            <form ref={formRef} onSubmit={handleSubmit} className="relative">
-              <div className="relative rounded-2xl bg-slate-700 border border-slate-600 hover:border-slate-500 transition-colors duration-200">
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask anything..."
-                  rows={1}
-                  className="w-full bg-transparent py-4 pl-6 pr-16 text-white placeholder-slate-400 focus:outline-none resize-none max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-700 rounded-2xl"
-                  disabled={isLoading}
-                />
-                <button
-                  type="submit"
-                  className="absolute right-3 bottom-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
-                  disabled={isLoading || !input.trim()}
-                  aria-label="Send message"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
-              </div>
-            </form>
+           <SuggestionButtons
+              suggestions={messages.length === 0 && !isLoading ? promptSuggestions : []}
+              onSuggestionClick={handleSuggestionClick}
+              disabled={isLoading}
+            />
+
+            {/* PromptInput replaces the old form */}
+            <PromptInput
+              onSubmit={handlePromptSubmit}
+              disabled={isLoading}
+              placeholder="Ask anything..."
+            />
             <p className="text-xs text-center text-slate-500 mt-4">
               AI can make mistakes. Please verify important information.
             </p>
