@@ -94,10 +94,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const modelName = selectedModelId === 'gemini-2.5-flash' ? 'gemini-2.5-flash' : 'gemma-3-27b-it';
-      
       const dynamicModel = genAI.getGenerativeModel({
-        model: modelName,
+        model: selectedModelId,
       });
 
       const chat = dynamicModel.startChat({
