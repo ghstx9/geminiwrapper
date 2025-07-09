@@ -74,8 +74,8 @@ export default function Sidebar({
   return (
     <div className="fixed inset-0 z-50 md:hidden">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className="fixed left-0 top-0 h-full w-80 bg-slate-800 border-r border-slate-700">
-        <div className="p-6 border-b border-slate-700">
+      <div className="fixed left-0 top-0 h-full w-80 bg-[#0F1528] border-r border-[#0F1528]">
+        <div className="p-6 border-b border-[#0F1528]">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-[#0b36d23f] rounded-lg flex items-center justify-center">
@@ -107,7 +107,7 @@ export default function Sidebar({
 
           <button
             onClick={handleNewChat}
-            className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
+            className="flex items-center justify-center gap-3 w-full bg-[#0b36d23f] text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
           >
             <Plus className="h-5 w-5" />
             <span>New Chat</span>

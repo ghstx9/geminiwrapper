@@ -27,7 +27,7 @@ const models: Model[] = [
     id: 'qwen/qwen3-30b-a3b:free',
     name: 'Qwen 3',
     description: 'Newest Qwen Model',
-    icon: <Sparkles className="h-4 w-4" />,
+    icon: <Cpu className="h-4 w-4" />,
   },
   {
     id: 'mistralai/mistral-small-3.2-24b-instruct:free',
@@ -45,7 +45,7 @@ const models: Model[] = [
     id: 'gemini-2.5-pro', 
     name: 'Gemini 2.5 Pro',
     description: 'Most advanced Google model',
-    icon: <Cpu className="h-4 w-4" />,
+    icon: <Sparkles className="h-4 w-4" />,
   }
 ];
 
@@ -120,7 +120,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
         </div>
       )}
 
-      {/* Backdrop to close dropdown */}
+      {/* backdrop to close dropdown */}
       {isOpen && (
         <div 
           className="fixed inset-0 z-40" 
