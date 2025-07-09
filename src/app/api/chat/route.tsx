@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, Content } from "@google/generative-ai";
 
 export const runtime = 'edge';
 
@@ -26,26 +26,45 @@ const isGeminiModel = (modelId: string) => {
   return modelId.includes('gemini') || modelId.includes('gemma');
 };
 
-const callOpenRouterAPI = async (modelId: string, message: string, history: any[], attachment?: any) => {
+interface Attachment {
+  type: string;
+  data: string;
+}
+
+interface OpenRouterUserMessageContent {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: {
+    url: string;
+  };
+}
+
+interface OpenRouterMessage {
+  role: 'user' | 'assistant';
+  content: string | OpenRouterUserMessageContent[];
+}
+
+const callOpenRouterAPI = async (modelId: string, message: string, history: Content[], attachment?: Attachment) => {
   if (!openRouterApiKey) {
     throw new Error('OpenRouter API key is not configured');
   }
 
-  const messages: any[] = [
-    ...(history || []).map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.parts?.[0]?.text || msg.content || ''
+  const messages: OpenRouterMessage[] = [
+    ...(history || []).map((msg) => ({
+      role: msg.role === 'user' ? 'user' : 'assistant' as 'user' | 'assistant',
+      content: msg.parts.map(part => part.text).join('')
     })),
   ];
 
-  const userMessage: any = { role: 'user', content: [] };
+  const userMessage: OpenRouterMessage = { role: 'user', content: [] };
+  const userMessageContent = userMessage.content as OpenRouterUserMessageContent[];
 
   if (message) {
-    userMessage.content.push({ type: 'text', text: message });
+    userMessageContent.push({ type: 'text', text: message });
   }
 
   if (attachment) {
-    userMessage.content.push({
+    userMessageContent.push({
       type: 'image_url',
       image_url: {
         url: `data:${attachment.type};base64,${attachment.data}`,
