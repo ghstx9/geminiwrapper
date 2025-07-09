@@ -514,23 +514,36 @@ export default function ChatPage() {
             className="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm" 
             onClick={handleAlertClose}
           />
-          <div className="relative bg-slate-800 border border-slate-700 rounded-xl p-8 max-w-lg w-full shadow-2xl">
-            <div className="flex items-center justify-center mb-6">
-              <div className="h-16 w-16 bg-amber-100 rounded-full flex items-center justify-center">
-                <svg className="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="relative bg-slate-800 border border-slate-700 rounded-xl p-4 sm:p-6 md:p-8 max-w-lg w-full shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            {/* close button for mobile */}
+            <button
+              onClick={handleAlertClose}
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors md:hidden"
+              aria-label="Close modal"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="flex items-center justify-center mb-4 sm:mb-6">
+              <div className="h-12 w-12 sm:h-16 sm:w-16 bg-amber-100 rounded-full flex items-center justify-center">
+                <svg className="h-6 w-6 sm:h-8 sm:w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
             </div>
             
-            <h2 className="text-xl font-bold text-white mb-4 text-center">Pemberitahuan Dukungan Bahasa</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 text-center leading-tight">
+              Pemberitahuan Dukungan Bahasa
+            </h2>
             
-            <div className="space-y-4 text-slate-300">
-              <p className="text-center">
+            <div className="space-y-3 sm:space-y-4 text-slate-300">
+              <p className="text-center text-sm sm:text-base">
                 <strong className="text-amber-400">Dukungan Bahasa Indonesia</strong> sangat minimal di beberapa model.
               </p>
               
-              <div className="bg-slate-900 rounded-lg p-4 border border-slate-600">
+              <div className="bg-slate-900 rounded-lg p-3 sm:p-4 border border-slate-600">
                 <p className="text-sm font-medium text-green-400 mb-2">✅ Bisa dipakai:</p>
                 <ul className="text-sm space-y-1 text-slate-300">
                   <li>• Gemini 2.5 Pro</li>
@@ -539,7 +552,7 @@ export default function ChatPage() {
                 </ul>
               </div>
               
-              <div className="bg-slate-900 rounded-lg p-4 border border-slate-600">
+              <div className="bg-slate-900 rounded-lg p-3 sm:p-4 border border-slate-600">
                 <p className="text-sm font-medium text-amber-400 mb-2">⚠️ Minimal atau sedikit:</p>
                 <ul className="text-sm space-y-1 text-slate-300">
                   <li>• Mistral 3.2</li>
@@ -547,22 +560,22 @@ export default function ChatPage() {
                 </ul>
               </div>
               
-              <p className="text-sm text-center text-slate-400">
+              <p className="text-xs sm:text-sm text-center text-slate-400 leading-relaxed">
                 Please click <span className="text-sky-500">don&#39;t show again</span> if you&#39;re not using Indonesian language.
               </p>
             </div>
             
-            <div className="space-y-3 mt-8">
-              <div className="flex gap-3">
+            <div className="space-y-3 mt-6 sm:mt-8">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleSwitchToGemini}
-                  className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors duration-200 font-medium text-sm"
+                  className="w-full sm:flex-1 px-4 py-3 sm:py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 active:bg-cyan-800 transition-colors duration-200 font-medium text-sm touch-manipulation"
                 >
                   Ganti Ke Gemini
                 </button>
                 <button
                   onClick={handleAlertClose}
-                  className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500 transition-colors duration-200 font-medium text-sm"
+                  className="w-full sm:flex-1 px-4 py-3 sm:py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500 active:bg-slate-700 transition-colors duration-200 font-medium text-sm touch-manipulation"
                 >
                   Lanjut Saja
                 </button>
@@ -570,7 +583,7 @@ export default function ChatPage() {
               
               <button
                 onClick={handleDontShowAgain}
-                className="w-full px-4 py-2 text-slate-400 hover:text-slate-300 text-sm underline hover:no-underline transition-colors duration-200"
+                className="w-full px-4 py-3 sm:py-2 text-slate-400 hover:text-slate-300 active:text-slate-200 text-sm underline hover:no-underline transition-colors duration-200 touch-manipulation"
               >
                 Don&#39;t show this again
               </button>
