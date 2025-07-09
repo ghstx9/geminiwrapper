@@ -26,18 +26,34 @@ const isGeminiModel = (modelId: string) => {
   return modelId.includes('gemini') || modelId.includes('gemma');
 };
 
-const callOpenRouterAPI = async (modelId: string, message: string, history: any[]) => {
+const callOpenRouterAPI = async (modelId: string, message: string, history: any[], attachment?: any) => {
   if (!openRouterApiKey) {
     throw new Error('OpenRouter API key is not configured');
   }
 
-  const messages = [
+  const messages: any[] = [
     ...(history || []).map((msg: any) => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
       content: msg.parts?.[0]?.text || msg.content || ''
     })),
-    { role: 'user', content: message }
   ];
+
+  const userMessage: any = { role: 'user', content: [] };
+
+  if (message) {
+    userMessage.content.push({ type: 'text', text: message });
+  }
+
+  if (attachment) {
+    userMessage.content.push({
+      type: 'image_url',
+      image_url: {
+        url: `data:${attachment.type};base64,${attachment.data}`,
+      },
+    });
+  }
+  
+  messages.push(userMessage);
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -70,14 +86,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { message, history, modelId } = body; 
+    const { message, history, modelId, attachment } = body;
     
     const selectedModelId = modelId; 
 
-    console.log('👀 API ROUTE HIT! REQUEST BODY:', body);
+    console.log('👀 API ROUTE HIT! REQUEST BODY:', { message, history, modelId, attachment: !!attachment });
 
-    if (!message) {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    if (!message && !attachment) {
+      return NextResponse.json({ error: 'Message or attachment is required' }, { status: 400 });
     }
 
     if (!selectedModelId) {
@@ -104,14 +120,27 @@ export async function POST(req: NextRequest) {
       });
 
       console.log('About to send message to Gemini API...');
-      const result = await chat.sendMessage(message);
-      const response = result.response;
-      responseText = response.text();
-    } 
+      
+      if (attachment) {
+        const imagePart = {
+          inlineData: {
+            data: attachment.data,
+            mimeType: attachment.type,
+          },
+        };
+        const result = await chat.sendMessage([message, imagePart]);
+        const response = result.response;
+        responseText = response.text();
+      } else {
+        const result = await chat.sendMessage(message);
+        const response = result.response;
+        responseText = response.text();
+      }
+    }
 
     else {
       console.log('About to send message to OpenRouter API...');
-      responseText = await callOpenRouterAPI(selectedModelId, message, history);
+      responseText = await callOpenRouterAPI(selectedModelId, message, history, attachment);
     }
 
     console.log('API Response:', responseText);

@@ -8,10 +8,17 @@ import PromptInput from '../components/promptinput';
 import SuggestionButtons from '../components/suggestionbuttons';
 import Sidebar from '../components/sidebar';
 
+interface Attachment {
+  name: string;
+  type: string;
+  data: string;
+}
+
 interface Message {
-  id: string;
+  id:string;
   text: string;
   isUser: boolean;
+  attachment?: Attachment;
 }
 
 interface HistoryPart {
@@ -207,8 +214,8 @@ export default function ChatPage() {
     }
   }, []);
 
-  const handlePromptSubmit = useCallback(async (message: string) => {
-    if (!message.trim() || isLoading) return;
+  const handlePromptSubmit = useCallback(async (message: string, attachment?: Attachment) => {
+    if (!message.trim() && !attachment || isLoading) return;
 
     if (promptSuggestions.length > 0) {
       setPromptSuggestions([]);
@@ -217,7 +224,8 @@ export default function ChatPage() {
     const userMessage: Message = { 
       id: generateMessageId(),
       text: message, 
-      isUser: true 
+      isUser: true,
+      attachment,
     };
     setMessages(prev => [...prev, userMessage]);
 
@@ -235,7 +243,8 @@ export default function ChatPage() {
         body: JSON.stringify({ 
           message, 
           history,
-          modelId: selectedModel 
+          modelId: selectedModel,
+          attachment,
         }),
       });
 
@@ -413,7 +422,7 @@ export default function ChatPage() {
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex items-start gap-4 ${msg.isUser ? 'flex-row-reverse' : ''}`}>
                     <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
-                      msg.isUser ? 'bg-slate-700' : 'bg-cyan-500'
+                      msg.isUser ? 'bg-slate-700' : 'bg-[#0b36d23f]'
                     }`}>
                       {msg.isUser ? (
                         <User className="h-5 w-5 text-white" />
@@ -427,7 +436,14 @@ export default function ChatPage() {
                         : 'bg-slate-800 border border-slate-700 text-slate-100'
                     }`}>
                       {msg.isUser ? (
-                        <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                        <div className="whitespace-pre-wrap leading-relaxed">
+                          {msg.attachment && (
+                            <div className="mb-2">
+                              <img src={`data:${msg.attachment.type};base64,${msg.attachment.data}`} alt={msg.attachment.name} className="max-w-xs rounded-lg" />
+                            </div>
+                          )}
+                          <p>{msg.text}</p>
+                        </div>
                       ) : (
                         <>
                           <div className="prose prose-invert max-w-none">
