@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ricky's Gemini",
+  title: "Ricky's LM",
   description: "incoming.",
 };
 

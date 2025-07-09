@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { User, MoonStar, ExternalLink, Copy, Check, Menu } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
@@ -9,6 +9,7 @@ import SuggestionButtons from '../components/suggestionbuttons';
 import Sidebar from '../components/sidebar';
 
 interface Message {
+  id: string;
   text: string;
   isUser: boolean;
 }
@@ -22,12 +23,57 @@ interface HistoryItem {
   parts: HistoryPart[];
 }
 
-// custom component for rendering code blocks with a copy button
-const CodeBlock = (props: React.ComponentProps<'code'> & { inline?: boolean }) => {
+const ALL_SUGGESTIONS = [
+  "Explain quantum computing in simple terms",
+  "What are the latest advancements in AI?",
+  "Suggest a good book on machine learning",
+  "How does blockchain technology work?",
+  "What are the benefits of using TypeScript?",
+  "Can you summarize the plot of 'Dune'?",
+  "Calculate a rocket launch trajectory",
+  "What are some effective ways to reduce stress and anxiety?"
+];
+
+const MODEL_NAMES: { [key: string]: string } = {
+  'gemma-3-27b-it': 'Gemma 3',
+  'gemini-2.5-pro': 'Gemini 2.5 Pro',
+  'mistralai/mistral-small-3.2-24b-instruct:free': 'Mistral 3.2',
+  'qwen/qwen3-30b-a3b:free': 'Qwen 3',
+  'deepseek/deepseek-chat-v3-0324:free': 'DeepSeek V3'
+};
+
+const SUPPORTED_INDONESIAN_MODELS = ['gemma-3-27b-it', 'gemini-2.5-pro', 'deepseek/deepseek-chat-v3-0324:free'];
+
+const copyToClipboard = async (text: string): Promise<boolean> => {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+    
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    const result = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return result;
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+    return false;
+  }
+};
+
+const CodeBlock = React.memo((props: React.ComponentProps<'code'> & { inline?: boolean }) => {
   const { inline, className, children, ...restProps } = props;
   const [copied, setCopied] = useState(false);
 
-  const handleCopyCode = () => {
+  const handleCopyCode = useCallback(async () => {
     const codeString = Array.isArray(children)
       ? children.join('')
       : typeof children === 'string'
@@ -36,24 +82,14 @@ const CodeBlock = (props: React.ComponentProps<'code'> & { inline?: boolean }) =
 
     if (!codeString) return;
 
-    const textArea = document.createElement('textarea');
-    textArea.value = codeString;
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-      document.execCommand('copy');
+    const success = await copyToClipboard(codeString);
+    if (success) {
       setCopied(true);
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy code: ', err);
+      setTimeout(() => setCopied(false), 2000);
     }
-    document.body.removeChild(textArea);
-  };
+  }, [children]);
 
-  const match = /language-(\w+)/.exec(className || '');
+  const match = useMemo(() => /language-(\w+)/.exec(className || ''), [className]);
 
   if (inline) {
     return (
@@ -92,118 +128,98 @@ const CodeBlock = (props: React.ComponentProps<'code'> & { inline?: boolean }) =
       </pre>
     </div>
   );
+});
+
+CodeBlock.displayName = 'CodeBlock';
+
+const getRandomSuggestions = (count: number = 3): string[] => {
+  const shuffled = [...ALL_SUGGESTIONS].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
 };
 
-const allSuggestions = [
-  "Explain quantum computing in simple terms",
-  "What are the latest advancements in AI?",
-  "Suggest a good book on machine learning",
-  "How does blockchain technology work?",
-  "What are the benefits of using TypeScript?",
-  "Can you summarize the plot of 'Dune'?",
-  "Calculate a rocket launch trajectory",
-  "What are some effective ways to reduce stress and anxiety?"
-];
+const convertUrlsToLinks = (text: string): string => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.replace(urlRegex, '[$1]($1)');
+};
 
-const getRandomSuggestions = () => {
-  const shuffled = [...allSuggestions].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, 3);
+const generateMessageId = (): string => {
+  return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('gemma-3-27b-it'); 
-  const [showAlert, setShowAlert] = useState(false); // New state for alert visibility
-
-  const [promptSuggestions, setPromptSuggestions] = useState<string[]>(allSuggestions.slice(0, 3));
-  const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
+  const [selectedModel, setSelectedModel] = useState('gemma-3-27b-it');
+  const [showAlert, setShowAlert] = useState(false);
+  const [promptSuggestions, setPromptSuggestions] = useState<string[]>([]);
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState<string | null>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setPromptSuggestions(getRandomSuggestions());
   }, []);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [messages.length, isLoading, scrollToBottom]);
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = useCallback((suggestion: string) => {
     handlePromptSubmit(suggestion);
-  };
+  }, []);
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     setMessages([]);
     setIsLoading(false);
     setPromptSuggestions(getRandomSuggestions());
-    setShowAlert(false); 
-  };
+    setShowAlert(false);
+  }, []);
 
-  const handleModelChange = (modelId: string) => {
+  const handleModelChange = useCallback((modelId: string) => {
     setSelectedModel(modelId);
     
-    const supportedIndonesianModels = ['gemma-3-27b-it', 'gemini-2.5-flash', 'deepseek/deepseek-r1-0528:free'];
-
     const hideAlert = localStorage.getItem('hideIndonesianAlert') === 'true';
+    const shouldShowAlert = !SUPPORTED_INDONESIAN_MODELS.includes(modelId) && !hideAlert;
+    setShowAlert(shouldShowAlert);
 
-    // show alert if the selected model is NOT in the supported list AND user hasn't chosen to hide it
-    if (!supportedIndonesianModels.includes(modelId) && !hideAlert) {
-      setShowAlert(true);
-    } else {
-      setShowAlert(false); 
-    }
-
-    const modelNames: { [key: string]: string } = {
-      'gemma-3-27b-it': 'Gemma 3',
-      'gemini-2.5-flash': 'Gemini 2.5 Flash',
-      'mistralai/mistral-small-3.2-24b-instruct:free': 'Mistral 3.2',
-      'qwen/qwen3-30b-a3b:free': 'Qwen 3',
-      'deepseek/deepseek-r1-0528:free': 'DeepSeek R1'
-    };
-    
     if (messages.length > 0) {
-      const modelName = modelNames[modelId] || modelId;
+      const modelName = MODEL_NAMES[modelId] || modelId;
       const modelChangeMessage: Message = {
-        text: `🔄 Switched to **${modelName}**. Your conversation will continue with the new model.`,
+        id: generateMessageId(),
+        text: `Switched to **${modelName}**. Your conversation will continue with the new model.`,
         isUser: false
       };
       setMessages(prev => [...prev, modelChangeMessage]);
     }
-  };
+  }, [messages.length]);
 
-  const handleCopy = (text: string, index: number) => {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-      document.execCommand('copy');
-      setCopiedMessageIndex(index);
-
-      setTimeout(() => {
-        setCopiedMessageIndex(null);
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
+  const handleCopy = useCallback(async (text: string, messageId: string) => {
+    const success = await copyToClipboard(text);
+    if (success) {
+      setCopiedMessageIndex(messageId);
+      setTimeout(() => setCopiedMessageIndex(null), 2000);
     }
-    document.body.removeChild(textArea);
-  };
+  }, []);
 
-  const handlePromptSubmit = async (message: string) => {
+  const handlePromptSubmit = useCallback(async (message: string) => {
     if (!message.trim() || isLoading) return;
 
     if (promptSuggestions.length > 0) {
       setPromptSuggestions([]);
     }
 
-    const userMessage: Message = { text: message, isUser: true };
-    setMessages((prev) => [...prev, userMessage]);
+    const userMessage: Message = { 
+      id: generateMessageId(),
+      text: message, 
+      isUser: true 
+    };
+    setMessages(prev => [...prev, userMessage]);
 
     const history: HistoryItem[] = messages.map(msg => ({
       role: msg.isUser ? 'user' : 'model',
@@ -227,32 +243,38 @@ export default function ChatPage() {
 
       if (!response.ok) {
         if (response.status === 429 && data.response) {
-          const aiMessage: Message = { text: data.response, isUser: false };
-          setMessages((prev) => [...prev, aiMessage]);
+          const aiMessage: Message = { 
+            id: generateMessageId(),
+            text: data.response, 
+            isUser: false 
+          };
+          setMessages(prev => [...prev, aiMessage]);
           return;
         }
-
         throw new Error(data.error || data.response || `API error: ${response.statusText}`);
       }
 
-      const aiMessage: Message = { text: data.response, isUser: false };
-      setMessages((prev) => [...prev, aiMessage]);
+      const aiMessage: Message = { 
+        id: generateMessageId(),
+        text: data.response, 
+        isUser: false 
+      };
+      setMessages(prev => [...prev, aiMessage]);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       const errorMsg = `❌ **Error**: ${errorMessage}`;
-      setMessages((prev) => [...prev, { text: errorMsg, isUser: false }]);
+      setMessages(prev => [...prev, { 
+        id: generateMessageId(),
+        text: errorMsg, 
+        isUser: false 
+      }]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading, promptSuggestions.length, messages, selectedModel]);
 
-  const convertUrlsToLinks = (text: string) => {
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(urlRegex, '[$1]($1)');
-  };
-
-  const markdownComponents: Components = {
+  const markdownComponents: Components = useMemo(() => ({
     a: ({ href, children, ...props }) => (
       <a
         href={href}
@@ -306,7 +328,29 @@ export default function ChatPage() {
         {children}
       </h3>
     ),
-  };
+  }), []);
+
+  const handleAlertClose = useCallback(() => setShowAlert(false), []);
+  
+  const handleSwitchToGemini = useCallback(() => {
+    setSelectedModel('gemini-2.5-pro');
+    setShowAlert(false);
+  }, []);
+
+  const handleDontShowAgain = useCallback(() => {
+    localStorage.setItem('hideIndonesianAlert', 'true');
+    setShowAlert(false);
+  }, []);
+
+  const shouldShowSuggestions = useMemo(() => 
+    messages.length === 0 && !isLoading, 
+    [messages.length, isLoading]
+  );
+
+  const displaySuggestions = useMemo(() => 
+    shouldShowSuggestions ? promptSuggestions : [], 
+    [shouldShowSuggestions, promptSuggestions]
+  );
 
   return (
     <div className="flex h-screen bg-[#081423] text-white">
@@ -330,12 +374,13 @@ export default function ChatPage() {
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* mobile header - always show */}
+        {/* mobile header */}
         <header className="md:hidden bg-[#0F1528] border-b border-slate-700 p-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
               className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              aria-label="Open sidebar"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -345,12 +390,12 @@ export default function ChatPage() {
               </div>
               <h1 className="text-lg font-bold text-white">Ricky&#39;s LM Demo</h1>
             </div>
-            <div className="w-9" /> {/* Placeholder for alignment */}
+            <div className="w-9" />
           </div>
         </header>
 
         <main className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-          {messages.length === 0 && !isLoading ? (
+          {shouldShowSuggestions ? (
             <div className="flex h-full flex-col">
               <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center max-w-2xl mx-auto">
@@ -365,12 +410,10 @@ export default function ChatPage() {
           ) : (
             <div className="max-w-4xl mx-auto p-6 md:p-8">
               <div className="space-y-8">
-                {messages.map((msg, index) => (
-                  <div key={index} className={`flex items-start gap-4 ${msg.isUser ? 'flex-row-reverse' : ''}`}>
+                {messages.map((msg) => (
+                  <div key={msg.id} className={`flex items-start gap-4 ${msg.isUser ? 'flex-row-reverse' : ''}`}>
                     <div className={`flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center ${
-                      msg.isUser 
-                        ? 'bg-slate-700' 
-                        : 'bg-cyan-500'
+                      msg.isUser ? 'bg-slate-700' : 'bg-cyan-500'
                     }`}>
                       {msg.isUser ? (
                         <User className="h-5 w-5 text-white" />
@@ -393,11 +436,11 @@ export default function ChatPage() {
                             </ReactMarkdown>
                           </div>
                           <button
-                            onClick={() => handleCopy(msg.text, index)}
+                            onClick={() => handleCopy(msg.text, msg.id)}
                             className="absolute top-4 right-4 p-2 rounded-lg bg-slate-700 text-slate-400 hover:bg-slate-600 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200"
                             aria-label="Copy message"
                           >
-                            {copiedMessageIndex === index ? (
+                            {copiedMessageIndex === msg.id ? (
                               <Check className="h-4 w-4 text-green-400" />
                             ) : (
                               <Copy className="h-4 w-4" />
@@ -432,12 +475,10 @@ export default function ChatPage() {
         <footer className="bg-[#081423] p-4 md:p-6">
           <div className="max-w-4xl mx-auto">
             <SuggestionButtons
-              suggestions={messages.length === 0 && !isLoading ? promptSuggestions : []}
+              suggestions={displaySuggestions}
               onSuggestionClick={handleSuggestionClick}
               disabled={isLoading}
             />
-
-            {/* PromptInput replaces the old form */}
             <PromptInput
               onSubmit={handlePromptSubmit}
               disabled={isLoading}
@@ -453,14 +494,11 @@ export default function ChatPage() {
       {/* alert modal */}
       {showAlert && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          {/* backdrop with blur */}
           <div 
             className="absolute inset-0 bg-black bg-opacity-70 backdrop-blur-sm" 
-            onClick={() => setShowAlert(false)} 
+            onClick={handleAlertClose}
           />
-          {/* alert content */}
           <div className="relative bg-slate-800 border border-slate-700 rounded-xl p-8 max-w-lg w-full shadow-2xl">
-            {/* warning icon */}
             <div className="flex items-center justify-center mb-6">
               <div className="h-16 w-16 bg-amber-100 rounded-full flex items-center justify-center">
                 <svg className="h-8 w-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -473,20 +511,20 @@ export default function ChatPage() {
             
             <div className="space-y-4 text-slate-300">
               <p className="text-center">
-                <strong className="text-amber-400">Dukungan Bahasa Indonesia</strong> tidak ada atau nyaris dikit di beberapa model.
+                <strong className="text-amber-400">Dukungan Bahasa Indonesia</strong> sangat minimal di beberapa model.
               </p>
               
               <div className="bg-slate-900 rounded-lg p-4 border border-slate-600">
                 <p className="text-sm font-medium text-green-400 mb-2">✅ Bisa dipakai:</p>
                 <ul className="text-sm space-y-1 text-slate-300">
-                  <li>• Gemini 2.5 Flash</li>
+                  <li>• Gemini 2.5 Pro</li>
                   <li>• Gemma 3</li>
-                  <li>• DeepSeek R1</li>
+                  <li>• DeepSeek V3</li>
                 </ul>
               </div>
               
               <div className="bg-slate-900 rounded-lg p-4 border border-slate-600">
-                <p className="text-sm font-medium text-amber-400 mb-2">⚠️ Tidak bisa atau sedikit:</p>
+                <p className="text-sm font-medium text-amber-400 mb-2">⚠️ Minimal atau sedikit:</p>
                 <ul className="text-sm space-y-1 text-slate-300">
                   <li>• Mistral 3.2</li>
                   <li>• Qwen 3</li>
@@ -501,16 +539,13 @@ export default function ChatPage() {
             <div className="space-y-3 mt-8">
               <div className="flex gap-3">
                 <button
-                  onClick={() => {
-                    setSelectedModel('gemini-2.5-flash');
-                    setShowAlert(false);
-                  }}
+                  onClick={handleSwitchToGemini}
                   className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 transition-colors duration-200 font-medium text-sm"
                 >
                   Ganti Ke Gemini
                 </button>
                 <button
-                  onClick={() => setShowAlert(false)}
+                  onClick={handleAlertClose}
                   className="flex-1 px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-500 transition-colors duration-200 font-medium text-sm"
                 >
                   Lanjut Saja
@@ -518,10 +553,7 @@ export default function ChatPage() {
               </div>
               
               <button
-                onClick={() => {
-                  localStorage.setItem('hideIndonesianAlert', 'true');
-                  setShowAlert(false);
-                }}
+                onClick={handleDontShowAgain}
                 className="w-full px-4 py-2 text-slate-400 hover:text-slate-300 text-sm underline hover:no-underline transition-colors duration-200"
               >
                 Don&#39;t show this again

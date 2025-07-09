@@ -8,7 +8,6 @@ interface Model {
   name: string;
   description: string;
   icon: React.ReactNode;
-  tier: 'free' | 'pro' | 'premium' | 'api';
 }
 
 interface ModelSelectorProps {
@@ -23,35 +22,30 @@ const models: Model[] = [
     name: 'Gemma 3',
     description: "Google's open source model",
     icon: <Zap className="h-4 w-4" />,
-    tier: 'free',
   },
   {
-    id: 'gemini-2.5-flash',
-    name: 'Gemini 2.5 Flash',
-    description: 'Most capable for complex tasks',
+    id: 'qwen/qwen3-30b-a3b:free',
+    name: 'Qwen 3',
+    description: 'Newest Qwen Model',
     icon: <Sparkles className="h-4 w-4" />,
-    tier: 'free',
   },
   {
     id: 'mistralai/mistral-small-3.2-24b-instruct:free',
     name: 'Mistral 3.2',
     description: 'Optimized model for speed',
     icon: <Brain className="h-4 w-4" />,
-    tier: 'free',
   },
   {
-    id: 'qwen/qwen3-30b-a3b:free',
-    name: 'Qwen 3',
-    description: 'Newest Qwen model',
-    icon: <Cpu className="h-4 w-4" />,
-    tier: 'free',
-  },
-  {
-    id: 'deepseek/deepseek-r1-0528:free',
-    name: 'DeepSeek R1',
-    description: 'Most advanced model in here',
+    id: 'deepseek/deepseek-chat-v3-0324:free', 
+    name: 'DeepSeek V3',
+    description: 'The infamous DeepSeek model',
     icon: <Fish className="h-4 w-4" />,
-    tier: 'free',
+  },
+  {
+    id: 'gemini-2.5-pro', 
+    name: 'Gemini 2.5 Pro',
+    description: 'Most advanced Google model',
+    icon: <Cpu className="h-4 w-4" />,
   }
 ];
 
@@ -64,35 +58,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 
   const selectedModelData = models.find(model => model.id === selectedModel) || models[0];
 
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'free':
-        return 'text-green-400';
-      case 'pro':
-        return 'text-blue-400';
-      case 'premium':
-        return 'text-purple-400';
-      case 'api':
-        return 'text-amber-400';
-      default:
-        return 'text-slate-400';
-    }
-  };
-
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case 'free':
-        return 'FREE';
-      case 'pro':
-        return 'PRO';
-      case 'premium':
-        return 'PREMIUM';
-      case 'api':
-        return 'API KEY';
-      default:
-        return '';
-    }
-  };
 
   return (
     <div className="relative">
@@ -110,9 +75,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
         <div className="flex items-center gap-2">
           {selectedModelData.icon}
           <span className="font-medium text-sm">{selectedModelData.name}</span>
-          <span className={`text-xs font-bold ${getTierColor(selectedModelData.tier)}`}>
-            {getTierBadge(selectedModelData.tier)}
-          </span>
         </div>
         <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -144,9 +106,6 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{model.name}</span>
-                      <span className={`text-xs font-bold ${getTierColor(model.tier)}`}>
-                        {getTierBadge(model.tier)}
-                      </span>
                     </div>
                     <p className="text-xs text-slate-400 truncate">{model.description}</p>
                   </div>
