@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { User, MoonStar, ExternalLink, Copy, Check, Menu } from 'lucide-react';
+import { User, MoonStar, ExternalLink, Copy, Check, Menu, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import PromptInput from '../components/promptinput';
