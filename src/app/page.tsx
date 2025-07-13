@@ -585,7 +585,7 @@ export default function ChatPage() {
                 onClick={handleDontShowAgain}
                 className="w-full px-4 py-2 text-slate-400 hover:text-slate-300 active:text-slate-200 text-xs sm:text-sm underline hover:no-underline transition-colors duration-200 touch-manipulation"
               >
-                Jangan tampilkan lagi
+                Don&#39;t show again
               </button>
             </div>
           </div>
