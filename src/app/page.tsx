@@ -533,17 +533,17 @@ export default function ChatPage() {
             </div>
             
             <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 text-center leading-tight">
-              Language Support
+              Pemberitahuan Dukungan Bahasa
             </h2>
             
             <div className="space-y-3 text-slate-300">
               <p className="text-center text-sm sm:text-base">
-                <strong className="text-amber-400">Indonesian language support</strong> is minimal for some models.
+                <strong className="text-amber-400">Dukungan Bahasa Indonesia</strong> sangat minimal di beberapa model.
               </p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="bg-slate-900 rounded-lg p-3 border border-slate-600">
-                  <p className="font-medium text-green-400 mb-1">✅ Good support:</p>
+                  <p className="font-medium text-green-400 mb-1">✅ Bisa dipakai:</p>
                   <ul className="text-slate-300">
                     <li>• Gemini 2.5 Pro</li>
                     <li>• Gemma 3</li>
@@ -552,7 +552,7 @@ export default function ChatPage() {
                 </div>
 
                 <div className="bg-slate-900 rounded-lg p-3 border border-slate-600">
-                  <p className="font-medium text-amber-400 mb-1">⚠️ Minimal support:</p>
+                  <p className="font-medium text-amber-400 mb-1">⚠️ Minimal atau sedikit:</p>
                   <ul className="text-slate-300">
                     <li>• Mistral 3.2</li>
                     <li>• Qwen 3</li>
@@ -571,13 +571,13 @@ export default function ChatPage() {
                   onClick={handleSwitchToGemini}
                   className="w-full sm:flex-1 px-4 py-3 sm:py-2.5 bg-cyan-600 text-white rounded-md hover:bg-cyan-700 active:bg-cyan-800 transition-colors duration-200 font-medium text-sm touch-manipulation"
                 >
-                  Switch to Gemini
+                  Ganti Ke Gemini
                 </button>
                 <button
                   onClick={handleAlertClose}
                   className="w-full sm:flex-1 px-4 py-3 sm:py-2.5 bg-slate-600 text-white rounded-md hover:bg-slate-500 active:bg-slate-700 transition-colors duration-200 font-medium text-sm touch-manipulation"
                 >
-                  Continue Anyway
+                  Lanjut Saja
                 </button>
               </div>
               
@@ -585,7 +585,7 @@ export default function ChatPage() {
                 onClick={handleDontShowAgain}
                 className="w-full px-4 py-2 text-slate-400 hover:text-slate-300 active:text-slate-200 text-xs sm:text-sm underline hover:no-underline transition-colors duration-200 touch-manipulation"
               >
-                Don&#39;t show this again
+                Jangan tampilkan lagi
               </button>
             </div>
           </div>
