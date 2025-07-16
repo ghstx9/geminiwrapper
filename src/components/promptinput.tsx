@@ -134,7 +134,7 @@ export default function PromptInput({
                 placeholder={placeholder}
                 rows={1}
                 disabled={disabled}
-                className="w-full bg-transparent py-4 pr-2 text-white placeholder-slate-400 focus:outline-none resize-none max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent text-base disabled:cursor-not-allowed leading-relaxed"
+                className="w-full bg-transparent pt-5 pb-4 pr-2 text-white placeholder-slate-400 focus:outline-none resize-none max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent text-base disabled:cursor-not-allowed leading-relaxed"
                 style={{ 
                   minHeight: '60px',
                   lineHeight: '1.6'
